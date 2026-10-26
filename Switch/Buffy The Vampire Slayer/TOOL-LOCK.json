@@ -1,0 +1,51 @@
+{
+  "recorded": "2026-10-26",
+  "host": "Windows 11 Pro 10.0.26200",
+  "status_legend": {"present": "found locally, revision recorded", "built": "built locally for this audit (private output)",
+                    "missing": "checked, not installed", "not_checked": "not inspected this run"},
+  "sources": {
+    "Buffy-Xbox-Decomp-Tools": {"url": "https://github.com/bartholomew91/buffy-xbox-decomp-tools", "head": "a6811e5c8d6e216c2096d07c503b03ce6c47a385", "last_commit": "2024-09-23", "status": "present", "dirty": false},
+    "XboxXBERecomp-TGP482": {"url": "https://github.com/TGP482/XboxXBERecomp", "head": "90bccea3fc6ef8dba8c6b601e11c94c8048b3494", "sdk_version": "0.1.0", "xdk_signatures": ["4831", "5849"], "status": "present", "dirty": false},
+    "xboxrecomp-sp00nznet": {"url": "https://github.com/sp00nznet/xboxrecomp", "head": "f0f8a461496a4f23d9b0aeaa284b8d70ba7ab82b", "version": "v0.16.0", "status": "present", "dirty": false},
+    "NFSU2-Switch": {"url": "https://github.com/antoxa2584x/nfsu2-sw", "head": "d3bbc3094f8e1ad3b34593eabd431f7d251b14cb", "last_commit": "2026-10-18", "status": "present", "dirty": false},
+    "BLACK-Android": {"url": "https://github.com/RanggaCasper/Black-Android", "head": "c1b7fb0079cb1c0bad1c375ef4b983f00a436399", "status": "present", "dirty": false},
+    "BLACK-PC-Recomp-HD-Map": {"url": "https://github.com/portingpete/Black-2006-Recomp", "head": "afb1ffd29df0c668c89610f6a1ae35bcf6b38ccd", "status": "present (not used: BLACK-only)"},
+    "nxport-Reference": {"url": "https://github.com/nxporting/nxport", "head": "ed55d4e5aff5a8a1922edc0b95ad9b6a24096e84", "status": "present (not re-reviewed)"},
+    "Claude-Decomp-Skills": {"url": "https://github.com/lemiur/Game-Decompilation-Skill-For-Claude", "head": "eedfe281d4fab7d8cdaf98b9f72f6a6ac4db04be", "status": "present"},
+    "extract-xiso": {"url": "https://github.com/XboxDev/extract-xiso", "head": "3f5b62cfe68f000b0e3c8a30104973f3a297948e", "status": "present (not needed)"},
+    "Switch-Examples": {"url": "https://github.com/switchbrew/switch-examples", "head": "669786898205b7beb25ff1731e72982e6d0397d3", "status": "present (not used)"},
+    "zydis (via BLACK build/_deps, read-only)": {"head": "a2278f1d254e492f6a6b39f6cb5d1f5d515659dc", "tag": "v4.1.1", "status": "present"},
+    "tomlplusplus (via BLACK build/_deps, read-only)": {"head": "30172438cee64926dc41fdd9c11fb3ba5b2ba9de", "tag": "v3.4.0", "status": "present"},
+    "aluigi buffy_2002_pak.bms": {"url": "https://aluigi.altervista.org/bms/buffy_2002_pak.bms", "status": "not_checked (HTTP 403)"},
+    "buffy-chaos-bleeds-pc": {"url": "https://github.com/KaikoClanworth1/buffy-chaos-bleeds-pc", "status": "not_checked (different title, 2003)"}
+  },
+  "built_private": {
+    "xbe_recomp.exe": {"from": "TGP482 90bccea tools/recomp", "sha256": "f252f8051e805c9ee56dd523f77940bffffbf5316cf75eb598e1782bbada6439", "status": "built"},
+    "xbe_symbols.exe": {"from": "TGP482 90bccea tools/symbols", "sha256": "0a15e427103666493391967a3759f8f5a8e02a9ff8712d93a84338b37d1288a9", "status": "built"}
+  },
+  "toolchains": {
+    "devkitPro": {"path": "C:\\Programming\\devkitPro", "status": "present"},
+    "devkitA64": {"version": "r30-1", "status": "present"},
+    "devkita64-gcc": {"version": "16.1.0-1", "status": "present", "known_issue": "ICE aarch64_function_arg_alignment (aarch64.cc:7502) on aligned(1) may_alias scalars; reproduced on Buffy"},
+    "devkita64-binutils": {"version": "2.46.0-1", "status": "present"},
+    "devkita64-newlib": {"version": "4.6.0.20260123-4", "status": "present"},
+    "libnx": {"version": "4.12.0-1", "status": "present"},
+    "switch-tools": {"version": "1.13.1-1", "status": "present"},
+    "deko3d": {"version": "0.5.0-1", "status": "present"},
+    "portlibs/switch": {"status": "present (bin/ only)"},
+    "switch-sdl2": {"status": "missing"},
+    "switch-mesa": {"status": "missing"},
+    "horizon NVK/Vulkan SDK": {"status": "missing in devkitPro (BLACK workstream has a private pinned prebuilt; not used here)"},
+    "switch-glslang": {"status": "missing"},
+    "Visual Studio 2026 clang-cl": {"version": "22.1.3 (llvm e9846648fd61)", "status": "present"},
+    "CMake": {"version": "4.4.3", "path": "C:\\Programming\\CMake\\bin", "status": "present"},
+    "Ninja": {"version": "1.13.2", "status": "present"},
+    "Python": {"version": "3.14.7", "status": "present"},
+    "capstone (python)": {"status": "missing"},
+    "Git": {"version": "2.55.0.windows.3", "status": "present"},
+    "GitHub CLI": {"version": "2.101.0", "status": "present"},
+    "7-Zip": {"status": "present (C:\\Program Files\\7-Zip\\7z.exe; version not_checked)"},
+    "QuickBMS": {"status": "not_checked"},
+    "Claude Code CLI": {"status": "not_checked (running inside desktop app)"}
+  }
+}
