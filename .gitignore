@@ -1,0 +1,48 @@
+# Original Xbox media and extracted data
+*.iso
+*.xiso
+*.cso
+*.xbe
+*.xex
+*.nsp
+*.xci
+*.nca
+*.rom
+*.bin
+*.pak
+*.par
+*.msh
+*.mtx
+*.stl
+*.dds
+*.wav
+*.mp4
+
+# Generated recompilation products and private game work
+**/Game Files/
+**/PrivateGameFiles/
+**/private/
+**/generated/
+**/assets/
+**/game/
+**/build/
+**/out/
+**/logs/
+**/cache/
+**/hardware-runs/
+**/Tools/
+*.nro
+*.elf
+*.nso
+*.o
+*.obj
+*.pdb
+*.dll
+*.exe
+
+# Machine-local material
+.env
+.env.*
+.claude/settings.local.json
+**/.venv/
+**/node_modules/
