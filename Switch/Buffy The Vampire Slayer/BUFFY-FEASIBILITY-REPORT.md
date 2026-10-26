@@ -2,14 +2,19 @@
 
 **Date:** 2026-10-26 · **Author:** Claude Code (independent of Codex's BLACK workstream) · **Repo base:** `main` @ `58d7327`
 
-## Decision: CONDITIONAL. The CPU side is unusually strong; the runtime and graphics route has two decisive tests left
+## Decision: CONDITIONAL. The CPU side is now proven on both recompilers; one decisive runtime test is left
 
-The retail disc ships the developer's full **MSVC linker map (`final.map`)** next to `Default.xbe`. Its timestamp matches the XBE's PE timestamp exactly. It names every one of the 41,601 function entries (38,841 of them game code from 563 object files) and gives their exact addresses. With the map supplying function boundaries, the TGP482 recompiler lifts the **whole XBE with 0 unimplemented instructions**. Generated partitions compile for AArch64 at `-O2` once BLACK's GCC workaround is applied. So the CPU half of a static recompilation is not the risk here.
+The retail disc ships the developer's full **MSVC linker map (`final.map`)** next to `Default.xbe`. Its timestamp matches the XBE's PE timestamp exactly. It names every one of the 41,601 function entries (38,841 of them game code from 563 object files) and gives their exact addresses. With the map supplying function boundaries:
+
+- **TGP482** lifts the whole XBE with **0 unimplemented instructions**. Generated partitions compile for AArch64 at `-O2` once BLACK's GCC workaround is applied.
+- **sp00nznet** (update, E5) finds **all 41,601 map functions** and translates **42,656/42,656 functions, 0 failed**. 99.3% of function ends agree with the map. One real instruction needs a lifter rule (`wbinvd` in XDK D3D device creation).
+
+So the CPU half of a static recompilation is not the risk here.
 
 The open question is the **runtime**, meaning the kernel, D3D8/NV2A graphics and DirectSound/APU audio. Buffy is built with **XDK 4432**, an early 2002 SDK:
 
 - **TGP482 runtime.** Its high-level (HLE) XDK layer only covers XDK 4831/5849, and it renders through Windows D3D12. Using it for Buffy means porting that HLE layer to 4432 (render-state numbering, about 52 struct offsets, about 10 older API variants, DirectSound differences). On top of that it needs a Switch host such as BLACK-Android's Vulkan/SDL3 layer, which is itself still unproven on Switch.
-- **sp00nznet `xboxrecomp`, as ported to Switch in `nfsu2-sw`.** This one is **title-agnostic**. It runs the game's own statically linked D3D library and executes the resulting NV2A pushbuffer through GL or Vulkan backends. Audio goes through a low-level (LLE) MCPX APU model taken from xemu, and Horizon memory is handled by a Win32-compat layer. It routes **120/120** of Buffy's kernel imports, and the NFSU2 port reports running on console. Because it works at the pushbuffer level, it **sidesteps the XDK 4432 HLE gap entirely**. Its x86 lifter has not yet been run on Buffy.
+- **sp00nznet `xboxrecomp`, as ported to Switch in `nfsu2-sw`.** This one is **title-agnostic**. It runs the game's own statically linked D3D library and executes the resulting NV2A pushbuffer through GL or Vulkan backends. Audio goes through a low-level (LLE) MCPX APU model taken from xemu, and Horizon memory is handled by a Win32-compat layer. It routes **120/120** of Buffy's kernel imports, and the NFSU2 port reports running on console. Because it works at the pushbuffer level, it **sidesteps the XDK 4432 HLE gap entirely**. Its x86 lifter now handles Buffy (E5).
 
 **Recommended route:** sp00nznet xboxrecomp (Switch fork from nfsu2-sw), with function boundaries seeded from `final.map`. TGP482 stays as a validated fallback for the CPU side.
 
@@ -23,8 +28,8 @@ The open question is the **runtime**, meaning the kernel, D3D8/NV2A graphics and
 | --- | --- |
 | Executable identity / layout parsed | **Proven** (own probe + sp00nznet parser + TGP482 loader agree) |
 | Assets extracted | Not attempted (not needed for the runtime decision) |
-| Functions recompiled (lifted to C++) | **Proven for TGP482**: whole image, 0 unimplemented. sp00nznet lifter **not run** |
-| Generated code compiles for AArch64 | **Proven for 2 of 128 partitions** (largest + first) with overlay |
+| Functions recompiled (lifted to C/C++) | **Proven on both.** TGP482: whole image, 0 unimplemented. sp00nznet: 42,656/42,656 translated, 0 failed, 11 unimplemented sites (10 in-body data, 1 real `wbinvd`) |
+| Generated code compiles for AArch64 | **Proven for 2 of 128 TGP482 partitions** (largest + first) with overlay. sp00nznet C **not compiled** yet |
 | NRO linked | **No** |
 | Graphics displayed | **No** |
 | Gameplay | **No** |
@@ -78,7 +83,7 @@ A recompiled engine reads the original PAKs itself, so **asset parsing is not on
 | --- | --- | --- | --- | --- | --- |
 | bartholomew91/buffy-xbox-decomp-tools `a6811e5` | Yes, assets only | — | — | — | A 256-line Tauri prototype: pattern-searches MSH vertex blocks, faces acknowledged wrong, no PAK/MTX/STL parser. **Saves no port work.** (Its public repo also ships 224 extracted `.msh` game files; don't copy that practice.) |
 | TGP482/XboxXBERecomp `90bccea` | Not supported by its scanner (`no signatures for these library builds; available: 4831 5849`) | **Works with map seeds: 0 unimplemented** | HLE D3D8 → D3D12 (Windows), 4831/5849 only | HLE DSound→XAudio2, SDL3 | CPU proven; runtime needs an XDK 4432 port plus a Switch host |
-| sp00nznet/xboxrecomp `f0f8a46` (v0.16.0) | Parser OK; kernel 120/120 routed | Python/capstone lifter **not run** (capstone absent) | LLE: NV2A pushbuffer executor → D3D11/GL | xemu APU LLE, kernel shim | **Best runtime fit** (title-agnostic); has `tools/symbols/map_names.py` to consume our map |
+| sp00nznet/xboxrecomp `f0f8a46` (v0.16.0) | Parser OK; kernel 120/120 routed | **Works with map seeds** (capstone 5.0.6): 42,656/42,656 translated, 0 failed | LLE: NV2A pushbuffer executor → D3D11/GL | xemu APU LLE, kernel shim | **Best runtime fit** (title-agnostic); its `tools/symbols/map_names.py` named 41,612 functions from our map |
 | antoxa2584x/nfsu2-sw `d3bbc30` | No (NFSU2) | uses sp00nznet | Adds `nv2a_gl` (switch-mesa) + `nv2a_vk` (NVK) | Horizon memory/input/files/SDL2 audio in `platform/win32_compat.c` | **Switch platform layer to reuse**; NFSU2 hooks (`src/`, 67 fixed addresses in `recomp_manual.c`) are not reusable |
 | RanggaCasper/Black-Android `c1b7fb0` | No (BLACK) | uses TGP482 pin `99078b1` | Vulkan backend for TGP482 (`native/vulkan.cpp`, no game addresses) | SDL3 | Only helps the TGP482 route |
 | nxporting/nxport `ed55d4e` | No | — | Concepts only | — | Methodology only (already reviewed for BLACK) |
@@ -122,6 +127,27 @@ No public **2002 Buffy** recompilation, decompilation or engine restoration was 
    - With the overlay: partition 0 compiles in 4 s (`.text` 194,825 B) and partition 50 (largest, 2.9 MB source) in 6 s (`.text` 272,452 B), both exit 0.
    - The other 126 partitions were not compiled.
 6. **E4, sp00nznet parser + kernel coverage:** exit 0; parser output matches. **120/120 imports routed**, 0 needing new code.
+7. **E5, sp00nznet pipeline, seeded from `final.map`.**
+   - **Setup:** a private venv with `capstone==5.0.6` (wheel SHA-256 `761c3dea…7064`). The pipeline ran from a `git archive` snapshot of `f0f8a46`, so the shared checkout stayed pristine. Seeds come from `scripts/map_to_seeds.py` (41,601 entries).
+   - **disasm** (all code sections, 1.91 M instructions):
+
+     | Run | Time | Functions | Map entries missed | Extra vs map | End = next map symbol / padding | Short ends | Overruns |
+     | --- | --- | --- | --- | --- | --- | --- | --- |
+     | unseeded | 568 s | 43,129 | 25 | 1,553 | 28,548 / 12,702 | 305 | 21 |
+     | **map-seeded** | 747 s | 42,656 | **0** | 1,055 | 27,937 / 13,354 (**99.3%**) | 306 | **4** |
+
+     The extras are mostly `tail_jump_alias` entries (811), sp00nznet's design for tail jumps into function bodies. 1,040 are in `.text`; none are in `DOLBY`, which is APU DSP code that the disassembler also swept as x86.
+   - **The 306 short ends** (`scripts/compare_sp00nznet_functions.py` with `xrefs.json`; gap contents checked separately):
+     - 24 continue in another detected function.
+     - 264 gaps (16,019 bytes) contain no branch target. Nearly all start with MSVC multi-byte NOP fill followed by switch jump/index tables, so they are data, not lost code.
+     - **18 gaps (1,061 bytes) do contain a branch target**. These need review or a `[function]`-style seed.
+   - **map_names resolve:** `entry point check: MATCH`. 75,658 symbols resolved and 41,612 function names applied (`scripts/apply_map_names.py`, using sp00nznet's own sanitiser).
+   - **func_id** (18 s): 4,975 vtables validated and 32,312 functions classified as game code.
+   - **abi_analysis** (3 s): 42,656 entries, 7,468 of them `thiscall`.
+   - **recomp** (`--all --split 250`, 148 s): **42,656/42,656 translated, 0 failed**. That's 3,874,674 lines of C in 171 files (153 MB, private).
+   - **Remaining issues:**
+     - 3 unresolved call stubs. One is a LIBCMT x87 dispatch label (`87disp.obj`) that needs a seed. Two are misdecoded data, one of them outside the image.
+     - 11 unimplemented-instruction sites. Ten are data inside game-function bodies (`CIBone`, `CharacterPhysics`, `BuffyFXMgr`, `GUIMenuLoadGame`, `TipWindow`); they would only trap if executed. **One is a real `wbinvd` in XDK `d3d8:dxgcreate.obj`**, which needs a no-op lifter rule before D3D device creation can run.
 
 ## 7. Most important blocker
 
@@ -129,9 +155,15 @@ No public **2002 Buffy** recompilation, decompilation or engine restoration was 
 
 ## 8. Next experiments (smallest first)
 
-1. **Lift Buffy with sp00nznet, seeded by the map** (CPU side of the recommended route, a few hours). In a private venv (`pip install capstone==<pinned>`): `xbe_parser` → `disasm` → `symbols.map_names resolve` (feed `final.map`) → `recomp --split`. Then compare function boundaries against the map the same way `compare_recomp_functions.py` does for TGP482. Pass: no unresolved or unsupported-instruction blockers outside data regions.
+1. ~~Lift Buffy with sp00nznet, seeded by the map~~. **Done (E5): PASS.** No unresolved or unsupported-instruction blockers outside data regions, apart from the one `wbinvd`.
 2. **Windows boot-to-first-flip** with the sp00nznet runtime, from the `templates/new-game` project. Pass: kernel init, XDK D3D device creation and at least one pushbuffer flip of the EA/Fox logo path, with the log captured. This PC step *does* shorten the Switch path: the lifted code, kernel and pushbuffer executor are the same code the Switch build uses, and only the presentation backend changes.
    - If it fails deep in APU/NV2A emulation for 4432-specific reasons, re-evaluate. The TGP482 4432 HLE port becomes the fallback, otherwise shelve.
+   - **Prep, small:**
+     - Map `wbinvd` to a no-op in the lifter.
+     - Seed the `87disp.obj` label.
+     - Review the 18 gaps that contain a branch target.
+     - Drop the two misdecoded-data stubs.
+     - Configure `xbox_memory_layout.h` from E4's section table (`.data` virtual end `0x009163B4`, `.bss` included).
 
 Only after (2) passes: install devkitPro `switch-sdl2` + `switch-mesa`, build the nfsu2-sw platform layer around Buffy's generated code, and replace its shared-memory mode with BLACK's proven `MapProcessMemory` alias if the console rejects shared memory.
 
@@ -140,7 +172,8 @@ Only after (2) passes: install devkitPro `switch-sdl2` + `switch-mesa`, build th
 - nfsu2-sw's console results are upstream claims; they were not reproduced here.
 - sp00nznet's "title-agnostic" support has not been demonstrated on an XDK 4432 image.
 - Tegra X1 performance of a 5.5 MB `.text` title plus LLE pushbuffer execution is unmeasured.
-- Only 2 of 128 TGP482 partitions were compiled for AArch64. No link was attempted.
+- Only 2 of 128 TGP482 partitions were compiled for AArch64. sp00nznet's 171 C files were not compiled for any target. No link was attempted.
+- sp00nznet's C output being translated does not mean it is semantically correct. In particular, the abi_analysis results for the 7,468 `thiscall` functions are unverified.
 - PAK internal format and the `XLaunchNewImageA` use (`launch_indyj.xpr`) were not investigated.
 - The aluigi `buffy_2002_pak.bms` script was not retrieved (HTTP 403).
 - Whether the ISO's XBE equals the extracted `Default.xbe` was not checked.
