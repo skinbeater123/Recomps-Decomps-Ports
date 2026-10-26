@@ -10,6 +10,8 @@ Authored scripts for the feasibility audit. They read the private game files and
 | `make_a64_overlay.py` | devkitA64 GCC 16.1.0 ICE workaround for TGP482 `runtime/cpu` headers (same transform BLACK used) |
 | `map_to_seeds.py` | Map function entries as sp00nznet `tools.disasm --seed-functions` JSON |
 | `compare_sp00nznet_functions.py` | sp00nznet `functions.json` vs the map: starts found/missed/extra, ends exact/padding/short/overrun, and (with `xrefs.json`) whether short gaps hold branch targets |
+| `make_manual_seeds.py` | The 34 hand seeds E6 needed: SEH `__finally` entries confirmed in `.rdata` scope tables, and `87disp.obj` x87 labels |
+| `sp00nznet-buffy/` | Runtime/lifter patches, the XDK 4432 fence adapter and the build/run scripts for the Windows boot (see its README) |
 | `apply_map_names.py` | Applies `tools.symbols.map_names resolve` output to a private `functions.json` with sp00nznet's own sanitiser |
 | `Build-RecompHost.cmd` + `host-tools/` | Builds only `xbe_recomp`/`xbe_symbols` from TGP482 into `<workspace>/Projects/Buffy The Vampire Slayer/private/build/host` |
 

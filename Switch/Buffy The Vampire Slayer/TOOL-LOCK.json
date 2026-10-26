@@ -191,6 +191,18 @@
     },
     "Claude Code CLI": {
       "status": "not_checked (running inside desktop app)"
+    },
+    "MSVC cl (VS 2026)": {
+      "version": "14.51.36231",
+      "status": "present",
+      "used_for": "E6 Windows build"
+    },
+    "Windows SDK": {
+      "version": "10.0.26100.0",
+      "status": "present"
+    },
+    "cdb (Debugging Tools)": {
+      "status": "missing; replaced by an opt-in dbghelp thread sampler in main.c"
     }
   }
 }

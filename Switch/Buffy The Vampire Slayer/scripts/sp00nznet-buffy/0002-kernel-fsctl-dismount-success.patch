@@ -1,0 +1,22 @@
+diff --git a/src/kernel/kernel_bridge.c b/src/kernel/kernel_bridge.c
+index 10d00f4..ad14c4c 100644
+--- a/src/kernel/kernel_bridge.c
++++ b/src/kernel/kernel_bridge.c
+@@ -5251,6 +5251,17 @@ static void bridge_NtFsControlFile(void)
+ {
+     uint32_t fsctl = STACK_ARG(5);
+     uint32_t ios_va = STACK_ARG(4);
++    /* FSCTL_DISMOUNT_VOLUME: XAPI's XFormatUtilityDrive writes the FATX
++     * header to the raw partition, then dismounts it. Failing the dismount
++     * fails the format, and Buffy (XDK 4432) turns that into its
++     * unrecoverable "disc error" screen during RunInstaller. Nothing is
++     * mounted to tear down here, so the dismount succeeds. */
++    if (fsctl == 0x00090020u) {
++        fprintf(stderr, "  [FILE] NtFsControlFile(FSCTL_DISMOUNT_VOLUME) -> success\n");
++        bridge_write_iostatus(ios_va, 0, 0);
++        g_eax = 0;
++        return;
++    }
+     fprintf(stderr, "  [FILE] NtFsControlFile(0x%X) - stub\n", fsctl);
+     bridge_write_iostatus(ios_va, 0xC00000BBu, 0);
+     g_eax = 0xC00000BBu;

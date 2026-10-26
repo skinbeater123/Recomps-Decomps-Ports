@@ -3,8 +3,9 @@
 
     python -I apply_map_names.py <xboxrecomp sdk> <map_names.json> <functions.json>
 
-Uses the SDK's own ghidra_naming.merge_names sanitiser and reserved-word rule, so the
-names look exactly like a Ghidra-named run. Collisions and reserved words get _<addr>.
+Uses the SDK's own ghidra_naming.merge_names sanitiser. Every name gets an _<ADDR>
+suffix: the map names the title's own CRT (`_matherr`, `memcpy`, ...), and unsuffixed
+those collide with the host CRT's declarations and symbols (MSVC C2371 on `_matherr`).
 Rewrites functions.json in place (keeps a .bak); run it on a PRIVATE copy only.
 """
 import json
@@ -18,16 +19,13 @@ def main(argv):
     from tools.ghidra_naming import merge_names as mn
 
     raw = json.loads(Path(names_path).read_text())
-    final, used = {}, set()
+    final = {}
     for addr, name in sorted(raw.items()):
         a = mn.norm_addr(addr)
         n = mn.sanitize(name)
         if not n:
             continue
-        if n in used or n in mn.RESERVED:
-            n = "%s_%s" % (n, a[2:].upper())
-        used.add(n)
-        final[a] = n
+        final[a] = "%s_%s" % (n[:90], a[2:].upper())
     applied = mn.apply_to_functions_json(final, funcs_path)
     print(json.dumps({"map_names": len(raw), "sanitized": len(final), "applied_to_functions": applied}))
     return 0

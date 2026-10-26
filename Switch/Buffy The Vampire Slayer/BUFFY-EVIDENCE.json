@@ -262,6 +262,81 @@
       "cmd": "python -m tools.recomp <Default.xbe> --all --split 250 --functions --labels (disasm_seeded) --identified --abi --gen-dir gen -o recomp_out",
       "exit": 0,
       "seconds": 148
+    },
+    {
+      "id": "E6_seeds",
+      "cmd": "python -I scripts/make_manual_seeds.py disasm_seeded/functions.json <final.map> <Default.xbe> manual_seeds.json",
+      "exit": 0,
+      "output": {
+        "seh_finally": 17,
+        "x87_dispatch_labels": 17,
+        "total": 34
+      },
+      "note": "reproduces the hand seeds used exactly"
+    },
+    {
+      "id": "E6_disasm_v2",
+      "cmd": "python -m tools.disasm <xbe> ... --seed-functions map_seeds.json --seed-functions manual_seeds.json",
+      "exit": 0,
+      "seconds": 705
+    },
+    {
+      "id": "E6_recomp_v2",
+      "cmd": "python -m tools.recomp <xbe> --all --split 250 ... --manual-functions manual_functions.json --gen-dir gen_v2",
+      "exit": 0,
+      "seconds": 149
+    },
+    {
+      "id": "E6_build",
+      "cmd": "scripts/sp00nznet-buffy/build.cmd (MSVC 14.51.36231 cl, Ninja, RelWithDebInfo)",
+      "exit": 0,
+      "seconds": "183-232",
+      "output": {
+        "exe_bytes": 80653312,
+        "pdb_bytes": 69652480,
+        "errors": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "id": "E6_build_fail_names",
+      "cmd": "first build with unsuffixed map names",
+      "exit": 2,
+      "output": "recomp_funcs.h: error C2371: '_matherr': redefinition (host corecrt_math.h); fixed by _<ADDR> name suffix"
+    },
+    {
+      "id": "E6_boot1",
+      "cmd": "run.ps1 -Seconds 120",
+      "exit": 3,
+      "output": {
+        "flips": 1,
+        "end": "watchdog: main spinning; native sample -> TLogo::ExecuteMovies -> DiskErrorCheck -> G_ErrorToUser -> D3DDevice_Swap -> D3D::BlockOnTime"
+      }
+    },
+    {
+      "id": "E6_boot_fence",
+      "cmd": "run.ps1 -Seconds 90 (fence adapter + dismount patch, fresh HDD)",
+      "exit": "3 (watchdog 60s)",
+      "output": {
+        "flips": 1452,
+        "fps": 25.0,
+        "frames": "all black (WMV quad not rasterised)",
+        "install_progress": "105 MB / 26 files into Z: in 25 s"
+      }
+    },
+    {
+      "id": "E6_boot_long",
+      "cmd": "run.ps1 -Seconds 240 -ReportDumpsOnly",
+      "exit": "killed at 240s",
+      "output": {
+        "install": "completed (version.dat written)",
+        "pixels_written": [
+          112078654,
+          260043521
+        ],
+        "title_screen": "rendered correctly (logo, moon, Press START) in report dumps 11-14, ~110 s after launch",
+        "fps_after_install": "~330 (unpaced)"
+      }
     }
   ],
   "gate_results": {
@@ -402,18 +477,56 @@
     },
     "nro_link": "NOT_ATTEMPTED",
     "graphics_display": "NOT_ATTEMPTED",
-    "gameplay": "NOT_ATTEMPTED"
+    "gameplay": "NOT_ATTEMPTED",
+    "prep_fixes": {
+      "result": "PASS",
+      "wbinvd": "no-op emitted",
+      "seeds_added": 34,
+      "branch_target_gaps": "18 -> 1 (D3DX_RD data)",
+      "unresolved_stubs": "3 -> 2 (misdecoded data)",
+      "recomp": {
+        "translated": 42683,
+        "failed": 0,
+        "unimplemented_in_body_data": 10
+      }
+    },
+    "windows_boot_to_first_flip": {
+      "result": "PASS (title screen rendered on Windows x64)",
+      "adapters": [
+        "lifter wbinvd no-op",
+        "kernel NtFsControlFile FSCTL_DISMOUNT_VOLUME -> success",
+        "XDK 4432 D3D::BlockOnTime replacement: device [0x5A29A0], time +0x30, semaphore +0x34 -> nv2a_pb_set_semaphore_target"
+      ],
+      "reached": [
+        "CRT/threads",
+        "HDD utility drive format+mount",
+        "DirectSound on emulated APU (effects image, DSP doorbell)",
+        "first-boot install of install.dat to Z:",
+        "NV2A pushbuffer flips at 25 fps",
+        "title screen"
+      ],
+      "not_working": [
+        "WMV movie quads render black (attr 0 reads zero; draw surface offset 0)"
+      ],
+      "not_tested": [
+        "input/START",
+        "gameplay",
+        "audio output quality",
+        "Horizon/Switch"
+      ]
+    }
   },
   "decision": {
-    "classification": "CONDITIONAL",
+    "classification": "GO (scoped Switch prototype)",
     "recommended_route": "sp00nznet xboxrecomp (Switch fork vendored in antoxa2584x/nfsu2-sw) with final.map-seeded function boundaries; TGP482 retained as proven CPU-lift fallback",
-    "most_important_blocker": "No runtime has yet shown Buffy's XDK 4432 D3D/DSound output working (sp00nznet LLE pushbuffer/APU untested on 4432). CPU lift is now proven on both recompilers. Switch GPU backend on hardware remains the shared BLACK blocker.",
-    "effort": "CPU lift: small (shown). Runtime to first frame: medium (weeks of hobby time) if sp00nznet LLE handles 4432 with small fixes, large otherwise.",
+    "most_important_blocker": "Horizon proof of the same build: nfsu2-sw platform layer memory mode on this console, GL(switch-mesa)/NVK backend, Tegra X1 performance. Secondary: black WMV quad; gameplay past Press START untested.",
+    "effort": "Windows title screen reached with 3 small adapters. Switch prototype to title screen: medium (days-weeks hobby time), reusing nfsu2-sw; gameplay/perf on Tegra X1 unknown.",
     "next_experiments": [
-      "DONE (E5): sp00nznet pipeline on Buffy seeded from final.map: PASS",
-      "Prep: wbinvd no-op lifter rule, seed 87disp label, review 18 branch-target gaps, configure xbox_memory_layout.h",
-      "Windows boot-to-first-flip using sp00nznet templates/new-game; capture kernel/D3D/pushbuffer logs"
-    ]
+      "Windows: press START (RECOMP_KEYBOARD/RECOMP_PAD_SCRIPT) and reach a level load from Z:\\pak",
+      "Trace one WMV quad draw to fix attribute 0 / draw-surface offset (cosmetic)",
+      "Switch: devkitPro switch-sdl2 + switch-mesa, build nfsu2-sw xboxrecomp + Buffy gen_v2 + adapters into an NRO; log memory mode; title screen on console"
+    ],
+    "previous_classification": "CONDITIONAL"
   },
   "unverified_assumptions": [
     "nfsu2-sw console results are upstream claims, not reproduced here",
@@ -424,7 +537,9 @@
     "the game does not write NV2A registers directly outside the D3D library (D3D__GpuReg present but usage not traced)",
     "ISO-embedded XBE equals extracted Default.xbe",
     "PAK internal format (aluigi buffy_2002_pak.bms returned HTTP 403, not reviewed)",
-    "sp00nznet generated C compiles (any target) and is semantically correct; thiscall ABI recovery unverified"
+    "sp00nznet generated C compiles (any target) and is semantically correct; thiscall ABI recovery unverified",
+    "Windows title screen implies nothing about Horizon memory/GL/NVK/performance",
+    "FSCTL_DISMOUNT_VOLUME success does not wipe the Z: backing dir; runs start from an empty save dir"
   ],
   "not_published": "No XBE bytes, map-derived address configs, generated C++, objects or assets are in this repository."
 }

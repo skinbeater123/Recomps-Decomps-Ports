@@ -1,0 +1,47 @@
+--- CMakeLists.txt
++++ CMakeLists.txt
+@@ -10,7 +10,7 @@
+ #   4. Add any game-specific compile definitions or link libraries
+ # ============================================================================
+ 
+-project(your_game_recomp C)
++project(buffy_recomp C)
+ 
+ set(CMAKE_C_STANDARD 11)
+ set(CMAKE_C_STANDARD_REQUIRED ON)
+@@ -30,7 +30,7 @@
+ #   find_package(xboxrecomp REQUIRED)
+ #
+ # Adjust this path to point to your xboxrecomp clone:
+-set(XBOXRECOMP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../xboxrecomp" CACHE PATH
++set(XBOXRECOMP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../sp00nznet-run/sdk" CACHE PATH
+     "Path to the xboxrecomp toolkit root directory")
+ 
+ # Add xboxrecomp as a subdirectory -- this builds all 6 runtime libraries
+@@ -46,12 +46,14 @@
+ # without a manual re-configure. A plain GLOB is evaluated once at configure
+ # time, so a newly generated file (an extra chunk, recomp_stubs_unresolved.c)
+ # is silently left out of the build and shows up as unresolved externals.
+-file(GLOB RECOMP_GEN_SOURCES CONFIGURE_DEPENDS "src/recomp/gen/*.c")
++set(RECOMP_GEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../sp00nznet-run/gen_v2" CACHE PATH "Generated recomp output")
++file(GLOB RECOMP_GEN_SOURCES CONFIGURE_DEPENDS "${RECOMP_GEN_DIR}/*.c")
+ 
+ # Core game sources
+ set(GAME_SOURCES
+     src/main.c
+     src/recomp_manual.c
++    src/buffy_d3d_fence.c   # XDK 4432 D3D::BlockOnTime replacement (manual function)
+     # Add game-specific sources here, e.g.:
+     # src/asset_loader.c
+     # src/custom_renderer.c
+@@ -74,8 +76,9 @@
+ # Include paths for generated recomp headers
+ target_include_directories(${PROJECT_NAME} PRIVATE
+     ${CMAKE_CURRENT_SOURCE_DIR}/src
+-    ${CMAKE_CURRENT_SOURCE_DIR}/src/recomp
++    ${RECOMP_GEN_DIR}
+     ${XBOXRECOMP_DIR}/include
++    ${XBOXRECOMP_DIR}/src/kernel
+ )
+ 
+ # Windows SDK libraries needed at link time
