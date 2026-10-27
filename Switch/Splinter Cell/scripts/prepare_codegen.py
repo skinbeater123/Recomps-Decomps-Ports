@@ -21,6 +21,23 @@ def main():
     for directory in ("tools", "templates/runtime"):
         shutil.copytree(SOURCE / directory, DEST / directory, dirs_exist_ok=True,
                         ignore=shutil.ignore_patterns("__pycache__", "output"))
+    # Upstream switch-arm resynchronization fix. SC1's CRT copy at 0x1B1820
+    # retained an OR decoded from inside MOV's displacement at 0x1B197E.
+    # That spurious store changes a freed block's next pointer by 0x4000.
+    path = DEST / "tools/recomp/disasm.py"
+    text = path.read_text(encoding="utf-8")
+    text = once(text, '''                if cs_insn.address in decoded:
+                    break          # rejoined a stream we already have
+                decoded[cs_insn.address] = self._decode_instruction(cs_insn)''',
+        '''                if cs_insn.address in decoded:
+                    break          # rejoined a stream we already have
+                # Drop every stale instruction beginning inside this real
+                # instruction, not just the one straddling the arm's entry.
+                for inner in range(cs_insn.address + 1,
+                                   cs_insn.address + cs_insn.size):
+                    decoded.pop(inner, None)
+                decoded[cs_insn.address] = self._decode_instruction(cs_insn)''')
+    path.write_text(text, encoding="utf-8")
     path = DEST / "tools/recomp/lifter.py"
     text = path.read_text(encoding="utf-8")
     text = once(text, '    "rdtsc", "cpuid",      # Special instructions',

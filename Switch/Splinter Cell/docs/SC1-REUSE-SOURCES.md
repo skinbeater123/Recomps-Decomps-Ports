@@ -55,6 +55,16 @@ now orders coherent guest-memory accesses with a host memory barrier. This is
 separate from renderer submission and GPU-completion fences, which remain the
 upstream runtime's responsibility.
 
+The same pinned sp00nznet source supplies a narrow switch-arm decoding fix.
+SC1's CRT copy (`0x001B1820`) has an embedded jump table followed by an arm
+at `0x001B197C`. The old resynchronizer kept a stale instruction at `0x001B197E`,
+inside that arm's MOV instruction. The resulting extra byte OR changed a freed
+block's next pointer by `0x4000`, eventually causing the bad compact object index.
+The overlay now removes every stale instruction starting inside a newly decoded
+instruction. `check_crt_copy.py` extracts and executes the actual lifted CRT
+routine locally: the old code fails even for a zero-byte copy; the fixed code
+passes 12,336 size/alignment/overlap cases, guard-byte and register checks.
+
 ## LIN and other references
 
 Both landaire articles were read: [part 1](https://landaire.net/a-file-format-uncracked-for-20-years/)

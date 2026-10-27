@@ -71,6 +71,7 @@ gamepad mapping (Switch buttons by label); SC1 gameplay controls remain untested
 ```powershell
 ./scripts/Build-Host.cmd
 python scripts/check_cpu_probe.py
+python scripts/check_crt_copy.py
 python scripts/run_host.py --seconds 30
 ```
 

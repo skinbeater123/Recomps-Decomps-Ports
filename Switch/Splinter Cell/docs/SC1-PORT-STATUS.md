@@ -68,14 +68,13 @@ guest address and recent call/stack state. Existing runtime API coverage and
 shader coverage remain title-dependent. Original LIN loading is preserved.
 The supplied NRO uses `-O0` for bring-up; it is not a performance result.
 
-Latest build: **84,625,605 bytes**, `NRO0`; ELF verified as AArch64 ELF64 PIE.
+Retained baseline build: **84,625,605 bytes**, `NRO0`; ELF verified as AArch64 ELF64 PIE.
 NRO SHA-256:
 `ea01c973836e111507385437ae771bd4de167be5feca4b507ba20eeaef1caaef`.
-The latest lift emitted 11,584 functions in 78 chunks, with zero emission
-failures, 266 unresolved direct-call stubs and 595 unsupported-instruction sites.
-These remaining sites are deliberate runtime diagnostics, not passed coverage.
-The original CRT regression passes. Python scripts compile; whitespace checks
-pass; all nine initially inventoried critical source hashes still match.
+The baseline NRO and matching ELF are retained locally under
+`private/artifacts/baseline-ea01c973/`. Generation counts are not runtime coverage.
+The original CPU probe and CRT-copy regressions pass. All nine initially
+inventoried critical source hashes matched at the previous artifact check.
 
 Optional host diagnosis: configure `-DSC1_ABI_CHECK=ON` in `build/host` to enable
 the runtime's existing register/stack checks. The retained checked run reports
@@ -83,24 +82,42 @@ four nonstandard CRT/kernel call contracts before engine loading; none of these
 checks identifies the later loader failure's cause. Temporary per-read tracing
 and decompressor captures are absent from the delivered generated sources/NRO.
 
-## Remaining work
+## Resolved object-index failure
 
-The current host failure is an invalid guest read at original instruction
+The previous host failure was an invalid guest read at original instruction
 `0x000397F1`, after compact index `0xF94A5E62` is decoded by `0x00047C70` and
 used by `0x00039840`/`0x000397E0` while loading an object reference from serialized
 Unreal bytecode (`0x0002ABC0`). The observed nested archive cursor before that
 index is `0x0010E089`. The bad index causes an out-of-range import-table access.
 The earlier missing-method blocker at `0x0002C230` is resolved.
 
-The root cause of the invalid serialized reference is **not established**.
-Decompression matches for the captured blocks; changing the index or skipping
-serialization would conceal the failure. The next useful investigation is to
-compare the ordered archive reads and bytecode-serialization path with the same
-executable under an original Xbox/reference execution, then correct the first
-divergence in the existing lifter/runtime. No replacement Unreal VM or asset
-conversion is justified by the current evidence.
+The root cause is a stale, misaligned instruction retained while decoding an
+embedded CRT memcpy jump table. At `0x001B197C`, the original MOV is three bytes;
+an erroneous OR at `0x001B197E` survived inside it and was also lifted. That OR
+changed a free-list next pointer from `...0690` to `...4690`. The allocator then
+read pathname text as free-block metadata and returned invalid pointers that
+desktop RAM mirrors partly concealed. The later object-index crash was a symptom.
 
-Then validate this same application on Switch hardware. No connected
+The narrow upstream resynchronization fix removes these overlapping decodes.
+The actual CRT routine failed its zero-byte copy/guard test before the fix and
+passes 12,336 cases afterward. Full host execution passes the previous index
+failure and reaches XDK input-driver initialization. No index or guest serializer
+is overridden, and the original ordered LIN loader remains in use.
+
+Independent checks preceding the fix found over 260,000 original archive reads
+matching independently decompressed LIN bytes, and compact integers matching a
+separate decoder. Instruction-level comparison of 61,878 recorded serializer
+instructions against original x86 execution in Unicorn found no integer-register
+or control-flow divergence. This is a narrow CPU diagnostic, not an original
+Xbox or full-game emulator run; Unicorn is not a build/runtime dependency.
+
+## Remaining work
+
+The next observed stop is unresolved XDK module initializer `0x00258F98`, called
+at `0x0025971C` from the original four-entry module table. Continue those original
+driver callbacks, then verify successful menu deserialization and rendering.
+
+Validate this same application on Switch hardware. No connected
 Switch USB device or SD volume was identified during this pass; no transfer was
 attempted. Original shadows, dynamic lighting, night/thermal vision, Bink movies,
 audio, gamepad behavior and mission progression remain unverified.
