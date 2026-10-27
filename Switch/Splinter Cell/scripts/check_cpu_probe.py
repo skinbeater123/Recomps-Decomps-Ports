@@ -25,6 +25,8 @@ RECOMP_TLS uint32_t g_eax,g_ecx,g_edx,g_ebx,g_esi,g_edi,g_esp,g_ebp,g_seh_ebp;
 RECOMP_TLS int g_df;
 volatile int g_gil_contended;
 void recomp_preempt(void) {}
+void recomp_spin_wake(void) {}
+void recomp_spin_yield(void) {}
 void recomp_unimpl(const char *what, uint32_t va) {
     fprintf(stderr,"Unimplemented in original probe: %s at %08X\n",what,va);
     exit(9);

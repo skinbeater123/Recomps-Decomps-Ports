@@ -23,8 +23,12 @@ if(NOT EXISTS "${ROOT}/generated/recomp_funcs.h")
 endif()
 add_subdirectory("${XBOXRECOMP_DIR}" xboxrecomp)
 get_target_property(KERNEL_SOURCES xbox_kernel SOURCES)
-list(REMOVE_ITEM KERNEL_SOURCES kernel_bridge.c)
-list(APPEND KERNEL_SOURCES "${ROOT}/private/host/kernel_bridge.c")
+list(REMOVE_ITEM KERNEL_SOURCES kernel_bridge.c nv2a_pb_exec.c xbox_memory_layout.c)
+list(APPEND KERNEL_SOURCES
+  "${ROOT}/private/host/kernel_bridge.c"
+  "${ROOT}/private/host/nv2a_pb_exec.c"
+  "${ROOT}/private/host/xbox_memory_layout.c"
+  "${ROOT}/src/gpu_commands.c")
 set_property(TARGET xbox_kernel PROPERTY SOURCES "${KERNEL_SOURCES}")
 if(NINTENDO_SWITCH)
 file(SHA256 "${NVK_SDK}/lib/libvulkan.a" SC1_DRIVER_SHA)
@@ -68,7 +72,7 @@ if(WIN32)
   target_compile_options(xbox_usb PRIVATE "/FI${ROOT}/src/host_clock.h")
   target_link_libraries(sc1 PRIVATE d3d11 dxgi dxguid xinput winmm dbghelp)
   set_source_files_properties(${GENERATED} PROPERTIES COMPILE_OPTIONS "/Od;/w;/bigobj")
-  target_link_options(sc1 PRIVATE /LARGEADDRESSAWARE)
+  target_link_options(sc1 PRIVATE /LARGEADDRESSAWARE /DEBUG /STACK:8388608)
 else()
   target_compile_definitions(sc1 PRIVATE NFSU2_VULKAN=1)
   set(SC1_GEN_OPT "-O1" CACHE STRING "Optimisation of generated game code; -O0 for bring-up")

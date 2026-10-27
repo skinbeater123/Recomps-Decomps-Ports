@@ -31,10 +31,13 @@ source = r'''
 ptrdiff_t g_xbox_mem_offset;
 RECOMP_TLS uint32_t g_eax,g_ecx,g_edx,g_ebx,g_esi,g_edi,g_esp,g_ebp,g_seh_ebp;
 RECOMP_TLS int g_df;
+RECOMP_TLS uint32_t g_eflags=0x202u;
 volatile int g_gil_contended;
 volatile uint32_t g_icall_trace[16],g_icall_trace_idx;
 volatile uint64_t g_icall_count;
 void recomp_preempt(void) {}
+void recomp_spin_wake(void) {}
+void recomp_spin_yield(void) {}
 void recomp_unimpl(const char *what,uint32_t va) { fprintf(stderr,"Unsupported %s %08X\n",what,va);exit(8); }
 recomp_func_t recomp_lookup(uint32_t va) { (void)va;return NULL; }
 recomp_func_t recomp_lookup_manual(uint32_t va) { (void)va;return NULL; }

@@ -65,6 +65,19 @@ instruction. `check_crt_copy.py` extracts and executes the actual lifted CRT
 routine locally: the old code fails even for a zero-byte copy; the fixed code
 passes 12,336 size/alignment/overlap cases, guard-byte and register checks.
 
+Further original startup reaches XDK USB/input initialization. Three initializers
+are recovered from the observed XPP module-descriptor table; Windows fault
+routing now calls the existing OHCI model's handler, matching the runtime's
+intended path. The original XPP frame-counter snapshot at `0x0025F03A` requires
+CLI/STI: these now clear/set virtual EFLAGS.IF, and generated function-entry
+preemption is masked while IF is clear. `check_xpp_interrupts.py` executes that
+actual lifted instruction window and checks IF, preserved flags and deferred
+preemption. The Windows polling hint now yields the guest lock as the existing Horizon path does; its pause-only branch deadlocked the original D3D fence wait against the ISR. The Horizon device model and original game input code are retained.
+
+The existing NV2A command executor now resolves semaphore DMA handles through the original RAMHT and DMA object, then performs only submitted releases at the submitted offset in contiguous guest RAM. The observed handle 8 maps to physical `0x005DE000`; no such address is hardcoded. Clear-value methods also latch their PGRAPH registers because original XDK NOP(9) reads them as software-method payload. `check_gpu_commands.py` verifies the command path and neighboring word.
+
+AC97 Reset Registers completes on an MMIO write before the original driver's single read. The previous background polling raced a compiler-hoisted read and left CL=2 forever at `0x00244FE3`. `check_ac97_reset.py` checks the actual MMIO write path for byte, word and dword accesses while preserving other bits. No original audio function is replaced.
+
 ## LIN and other references
 
 Both landaire articles were read: [part 1](https://landaire.net/a-file-format-uncracked-for-20-years/)

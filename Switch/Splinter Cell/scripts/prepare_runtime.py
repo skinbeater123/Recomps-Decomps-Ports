@@ -25,6 +25,37 @@ def main():
     text = text.replace("Burnout 3: Takedown", "Splinter Cell (2002)")
     text = replace_once(text, '#  define NFSU2_DEFAULT_SAVE_DIR NULL',
         '#  define NFSU2_DEFAULT_SAVE_DIR "' + (ROOT / 'private/host-data/save').as_posix() + '"')
+    # Keep enough emergency stack to identify native recursion on this host.
+    text = replace_once(text, '    SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_UNDNAME);',
+                        '    ULONG guarantee = 65536;\n    SetThreadStackGuarantee(&guarantee);\n    SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_UNDNAME);')
+    text = replace_once(text, '    if (ep->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION) {', '''    if (ep->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW) {
+        void *frames[96];
+        USHORT count = CaptureStackBackTrace(0, 96, frames, NULL);
+        fprintf(stderr, "[CRASH] native stack overflow at RIP=%llX module=%p\\n",
+                (unsigned long long)ep->ContextRecord->Rip, GetModuleHandleA(NULL));
+        print_guest_state();
+        for (USHORT i = 0; i < count; ++i) {
+            char storage[sizeof(SYMBOL_INFO) + 256] = {0};
+            SYMBOL_INFO *symbol = (SYMBOL_INFO *)storage;
+            DWORD64 displacement = 0;
+            symbol->SizeOfStruct = sizeof(SYMBOL_INFO); symbol->MaxNameLen = 255;
+            if (SymFromAddr(GetCurrentProcess(), (DWORD64)frames[i], &displacement, symbol))
+                fprintf(stderr, "  native %u %s+%llX\\n", i, symbol->Name,
+                        (unsigned long long)displacement);
+            else fprintf(stderr, "  native %u %p\\n", i, frames[i]);
+        }
+        fflush(stderr);
+    }
+    if (ep->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION) {''')
+    # The Switch fork protects OHCI pages on Windows, but its diagnostic host
+    # reporter omitted the existing device fault handler. Keep using that model.
+    text = replace_once(text, '        uintptr_t fault = ep->ExceptionRecord->ExceptionInformation[1];', '''        uintptr_t fault = ep->ExceptionRecord->ExceptionInformation[1];
+        extern int xbox_OhciOwnsAddress(uint32_t);
+        extern int xbox_OhciHandleMmio(void *, uint32_t);
+        uintptr_t guest = fault - (uintptr_t)g_xbox_mem_offset;
+        if (guest <= UINT32_MAX && xbox_OhciOwnsAddress((uint32_t)guest) &&
+                xbox_OhciHandleMmio(ep->ContextRecord, (uint32_t)guest))
+            return EXCEPTION_CONTINUE_EXECUTION;''')
     text = replace_once(text, '    if (!xbox_MemoryLayoutInit(xbe_data, xbe_size)) {', '''    extern int sc1_validate_xbe(const void *, size_t);
     if (!sc1_validate_xbe(xbe_data, xbe_size)) {
         fatal("Wrong default.xbe: this build requires the verified European retail executable.");
@@ -123,6 +154,27 @@ static int sc1_vk_instance(VkInstance instance) {
     text = replace_once(text, '    n = 8;\n    if (vkEnumeratePhysicalDevices',
                         '    if (!sc1_vk_instance(s_inst)) return 0;\n    n = 8;\n    if (vkEnumeratePhysicalDevices')
     (OUT / "nv2a_vk.c").write_text(text, encoding="utf-8")
+    text = (UPSTREAM / "xboxrecomp/src/kernel/xbox_memory_layout.c").read_text(encoding="utf-8")
+    text = replace_once(text, '''void xbox_mmio_write(uint32_t va, uint32_t val, unsigned size)
+{''', '''void xbox_mmio_write(uint32_t va, uint32_t val, unsigned size)
+{
+    /* AC97 RR completes on the register write, before XDK's single read.
+     * Some original drivers hoist that read out of the following spin loop.
+     * Apply the same channel-reset model on Windows and Horizon. */
+    if (va >= 0xFEC00108u && va < 0xFEC00180u) {
+        for (unsigned byte = 0; byte < size; ++byte) {
+            uint32_t reg = va + byte;
+            if (reg >= 0xFEC0010Bu && reg < 0xFEC00180u && (reg & 15u) == 11u)
+                val &= ~(2u << (byte * 8u));
+        }
+    }''')
+    (OUT / "xbox_memory_layout.c").write_text(text, encoding="utf-8")
+    text = (UPSTREAM / "xboxrecomp/src/kernel/nv2a_pb_exec.c").read_text(encoding="utf-8")
+    text = replace_once(text, '    if (method == 0x1D70 && s_sem_va) {', '''    extern int sc1_gpu_command(uint8_t *, uint32_t, uint32_t, uint32_t);
+    if (sc1_gpu_command((uint8_t *)xbox_GetMemoryOffset(), subch, method, param))
+        return;
+    if (method == 0x1D70 && s_sem_va) {''')
+    (OUT / "nv2a_pb_exec.c").write_text(text, encoding="utf-8")
     text = (UPSTREAM / "xboxrecomp/src/kernel/kernel_bridge.c").read_text(encoding="utf-8")
     # SC1's original binned allocator indexes pool metadata by address >> 16.
     # NtAllocateVirtualMemory must return a 64 KiB-aligned new reservation and

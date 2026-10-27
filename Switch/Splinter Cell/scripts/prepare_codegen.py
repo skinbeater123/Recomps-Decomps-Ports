@@ -49,6 +49,10 @@ def main():
         if m == "cpuid":
             return ["{ uint32_t _id[4]; xbox_Cpuid(eax, ecx, _id);"
                     " eax = _id[0]; ebx = _id[1]; ecx = _id[2]; edx = _id[3]; }"]
+        if m == "cli":
+            return ["g_eflags &= ~0x200u; /* cli */"]
+        if m == "sti":
+            return ["g_eflags |= 0x200u; /* sti */"]
         if m == "pushfd":
             return ["PUSH32(esp, recomp_pushfd()); /* pushfd */"]
         if m == "popfd":
@@ -123,6 +127,26 @@ def main():
     path.write_text(text, encoding="utf-8")
     header = DEST / "templates/runtime/recomp_types.h"
     text = header.read_text(encoding="utf-8")
+    text = once(text, 'if (g_gil_contended) recomp_preempt();',
+                'if (g_gil_contended && (g_eflags & 0x200u)) recomp_preempt();')
+    text = once(text, 'if (__builtin_expect(g_gil_contended, 0)) recomp_preempt();',
+                'if (__builtin_expect(g_gil_contended, 0) && (g_eflags & 0x200u)) recomp_preempt();')
+    text = once(text, '#include <sched.h>\nvoid recomp_spin_wake(void);',
+                '#include <sched.h>\nextern RECOMP_TLS uint32_t g_eflags;\nvoid recomp_spin_wake(void);')
+    text = once(text, 'if ((turns & 63u) == 0)\n        recomp_spin_yield();',
+                'if ((turns & 63u) == 0 && (g_eflags & 0x200u))\n        recomp_preempt();')
+    # MSVC's pause-only branch starves ISRs waiting on the guest lock when
+    # original D3D spins for a fence. Match the existing Horizon poll yield.
+    text = once(text, '#define RECOMP_SPIN_HINT() _mm_pause()', '''extern RECOMP_TLS uint32_t g_eflags;
+void recomp_spin_wake(void);
+void recomp_preempt(void);
+static inline void recomp_spin_hint(void) {
+    static RECOMP_TLS unsigned turns;
+    _mm_pause();
+    if ((++turns & 15u) == 0) recomp_spin_wake();
+    if ((turns & 63u) == 0 && (g_eflags & 0x200u)) recomp_preempt();
+}
+#define RECOMP_SPIN_HINT() recomp_spin_hint()''')
     marker = 'extern RECOMP_TLS int g_df;'
     helpers = '''
 /* CPUID/EFLAGS helpers backported from xboxrecomp f0f8a461 (MIT). */

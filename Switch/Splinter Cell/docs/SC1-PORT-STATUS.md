@@ -1,4 +1,4 @@
-# SC1 port status — 27 October 2026
+# SC1 port status — 28 October 2026
 
 **Native ARM64 NRO linked; original engine/loader startup demonstrated on Windows.
 No Switch execution, authentic rendered menu, training or interactive gameplay
@@ -68,6 +68,17 @@ guest address and recent call/stack state. Existing runtime API coverage and
 shader coverage remain title-dependent. Original LIN loading is preserved.
 The supplied NRO uses `-O0` for bring-up; it is not a performance result.
 
+Current rebuilt NRO: **85,072,069 bytes**, `NRO0`; matching ELF verified as
+AArch64 ELF64 PIE, generated with `-O0`. NRO SHA-256:
+`736a76e5ac8c10c71e4596c075e499bb78633990e1371b2925ffa28e6a7813ea`.
+Matching ELF SHA-256:
+`281b06570f2c90ec45e79c1d271ae62fd9a7deb9abe29f982a5108519f2932a1`.
+Both artifacts and a generated-source-set checksum manifest are retained at
+`private/artifacts/sc1-736a76e5ac8c/`. These artifacts include the root CRT fix,
+IF/polling, OHCI, DMA semaphore, AC97 and observed Bink/input callback recovery.
+All five focused regressions pass; all nine inventoried critical source hashes
+were rechecked and matched. No Switch hardware run is implied.
+
 Retained baseline build: **84,625,605 bytes**, `NRO0`; ELF verified as AArch64 ELF64 PIE.
 NRO SHA-256:
 `ea01c973836e111507385437ae771bd4de167be5feca4b507ba20eeaef1caaef`.
@@ -101,7 +112,7 @@ desktop RAM mirrors partly concealed. The later object-index crash was a symptom
 The narrow upstream resynchronization fix removes these overlapping decodes.
 The actual CRT routine failed its zero-byte copy/guard test before the fix and
 passes 12,336 cases afterward. Full host execution passes the previous index
-failure and reaches XDK input-driver initialization. No index or guest serializer
+failure, XDK input-driver initialization, D3D setup and the first GPU fences. No index or guest serializer
 is overridden, and the original ordered LIN loader remains in use.
 
 Independent checks preceding the fix found over 260,000 original archive reads
@@ -113,14 +124,59 @@ Xbox or full-game emulator run; Unicorn is not a build/runtime dependency.
 
 ## Remaining work
 
-The next observed stop is unresolved XDK module initializer `0x00258F98`, called
-at `0x0025971C` from the original four-entry module table. Continue those original
-driver callbacks, then verify successful menu deserialization and rendering.
+Original XDK module initializers from the four-entry table at `0x00258DD4` are
+now recovered. The Windows diagnostic host routes OHCI faults to the existing
+device model; the original driver enables its periodic list and its ISR claims
+interrupts. CLI/STI now update virtual EFLAGS.IF, and function-entry preemption
+respects that mask. The actual lifted XPP CLI/read/STI window passes its focused
+flag/preemption test. These runs use `RECOMP_NO_MIRRORS=1`; the earlier invalid
+heap pointers no longer depend on desktop RAM aliases to remain accessible.
 
-Validate this same application on Switch hardware. No connected
-Switch USB device or SD volume was identified during this pass; no transfer was
-attempted. Original shadows, dynamic lighting, night/thermal vision, Bink movies,
-audio, gamepad behavior and mission progression remain unverified.
+The observed XNET state callback and original GPU DPC are recovered. Windows
+polling now releases the guest lock periodically, as Horizon polling already
+did; the pause-only diagnostic branch prevented the GPU ISR from taking the
+original NOP(40) trap. Poll yields and function-entry preemption respect IF.
+
+The original command stream selects semaphore DMA handle 8, offset 0, then
+releases 5. Its RAMHT/DMA descriptor maps that to physical `0x005DE000`; the
+existing executor previously required a title-specific external semaphore pointer
+and left the fence word at 3. Command-based DMA resolution now performs the
+submitted write through the runtime's contiguous RAM window. The XDK also uses
+clear-value registers to convey NOP(9) payload; these now latch from their GPU
+methods. No guest pointer, fence value or completion is forced.
+
+Execution proceeds to original draw submission (32 draws/128 indices observed),
+framebuffer clears, controller-image loading and opening `videos/logos.bik`.
+Early captures are black and report degenerate geometry. Later retained CPU
+framebuffer captures contain authentic intro imagery, including Sam Fisher and
+the title, with visible artifacts. These are movie frames, not menu images or
+proof of completed menu rendering.
+
+AC97 Reset Registers now completes on the actual MMIO write before the driver's
+single status read. Background clearing lost against the original compiler-hoisted
+read, leaving CL=2 forever at `0x00244FE3`; independent disassembly confirms the
+lifted control flow is faithful. Byte/word/dword reset-write tests pass without
+changing the original audio routine.
+
+Original Bink decoding and its bounded pixel-conversion callback table have also
+been recovered. A strict host run consumed the intro and returned to menu object
+loading without the original compact-index crash. The original vtable methods `0x000E9180`/`0x000E3DA0` have been recovered and
+executed. Property method `0x00103530` through vtable `0x00277984` slot `+0x1C` is also
+recovered and executed. Loading continues through nested original object
+serialization, then exhausts the Windows diagnostic executable's 1 MiB native
+stack while the guest stack has used about 78 KiB of its 8 MiB allocation.
+The retained native/guest backtrace names the original loading calls; an 8 MiB
+native-stack run is testing whether that host resource limit is sufficient.
+The existing controller diagnostic can issue normal Start input to shorten intro
+runs. Menu deserialization completion and authentic rendering still require
+direct evidence.
+
+Validate this same application on Switch hardware. The correct deployment
+storage is accessed at the owner-specified network endpoint. The original
+extracted files are being staged there with ISO excluded; no SC1 console launch or
+Horizon rendering is demonstrated. Original shadows, dynamic lighting,
+night/thermal vision, accurate movie playback/audio, gamepad behavior and mission
+progression remain unverified.
 
 Public research is exported into the existing `Switch/Splinter Cell` directory.
 The local working repository and public research repository have unrelated Git

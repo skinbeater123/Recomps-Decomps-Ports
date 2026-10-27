@@ -38,5 +38,93 @@
   {
     "start": "0x001F6870",
     "evidence": "Original XDK 4928 GPU interrupt routine registered by KeConnectInterrupt; vblank reports ISR not callable without this seed"
+  },
+  {
+    "start": "0x00258F98",
+    "evidence": "Original XDK module initializer at descriptor 0x00258E00+4; four-entry table 0x00258DD4..0x00258DE4 iterated by observed dispatcher call 0x0025971C"
+  },
+  {
+    "start": "0x002594D5",
+    "evidence": "Original XDK module initializer at descriptor 0x00258F3C+4; four-entry table 0x00258DD4..0x00258DE4 iterated by observed dispatcher call 0x0025971C"
+  },
+  {
+    "start": "0x002597E5",
+    "evidence": "Original XDK module initializer at descriptor 0x00258F80+4; four-entry table 0x00258DD4..0x00258DE4 iterated by observed dispatcher call 0x0025971C"
+  },
+  {
+    "start": "0x001E6DF2",
+    "evidence": "Original XNET state callback observed at indirect call 0x001E17E2, descriptor +0xC, during menu/HUD loading with desktop RAM mirrors disabled"
+  },
+  {
+    "start": "0x00259D81",
+    "evidence": "Original XPP module descriptor 0x00258E00 callback field +0x8; descriptor dispatch +8 observed at 0x0025B597 while OHCI enumerates the original input device"
+  },
+  {
+    "start": "0x00259F03",
+    "evidence": "Original XPP module descriptor 0x00258E00 callback field +0xC; descriptor dispatch +8 observed at 0x0025B597 while OHCI enumerates the original input device"
+  },
+  {
+    "start": "0x0025D3F4",
+    "evidence": "Original XPP module descriptor 0x00258F3C callback field +0x8; descriptor dispatch +8 observed at 0x0025B597 while OHCI enumerates the original input device"
+  },
+  {
+    "start": "0x0025CE06",
+    "evidence": "Original XPP module descriptor 0x00258F3C callback field +0xC; descriptor dispatch +8 observed at 0x0025B597 while OHCI enumerates the original input device"
+  },
+  {
+    "start": "0x0025E235",
+    "evidence": "Original XPP module descriptor 0x00258F80 callback field +0x8; descriptor dispatch +8 observed at 0x0025B597 while OHCI enumerates the original input device"
+  },
+  {
+    "start": "0x0025DC1E",
+    "evidence": "Original XPP module descriptor 0x00258F80 callback field +0xC; descriptor dispatch +8 observed at 0x0025B597 while OHCI enumerates the original input device"
+  },
+  {
+    "start": "0x001F7220",
+    "evidence": "Original D3D deferred interrupt callback queued by observed ISR 0x001F6870; runtime reports DPC routine not in dispatch, leaves PMC interrupt enable masked and stalls original NOP(40) trap"
+  },
+  {
+    "start": "0x0022D1F0",
+    "evidence": "Observed original Bink decoder callback at indirect call 0x0022E554 while decoding videos/logos.bik; recover original routine unchanged"
+  },
+  {
+    "start": "0x00235160",
+    "evidence": "Original Bink pixel-conversion callback table at 0x003A34A4..0x003A34D0; callback 0x00235160 observed at 0x0022B4C5 while rendering logos.bik. Recover this bounded table unchanged"
+  },
+  {
+    "start": "0x002353B0",
+    "evidence": "Original Bink pixel-conversion callback table at 0x003A34A4..0x003A34D0; callback 0x00235160 observed at 0x0022B4C5 while rendering logos.bik. Recover this bounded table unchanged"
+  },
+  {
+    "start": "0x0023C4E0",
+    "evidence": "Original Bink pixel-conversion callback table at 0x003A34A4..0x003A34D0; callback 0x00235160 observed at 0x0022B4C5 while rendering logos.bik. Recover this bounded table unchanged"
+  },
+  {
+    "start": "0x0023BF40",
+    "evidence": "Original Bink pixel-conversion callback table at 0x003A34A4..0x003A34D0; callback 0x00235160 observed at 0x0022B4C5 while rendering logos.bik. Recover this bounded table unchanged"
+  },
+  {
+    "start": "0x0023C1C0",
+    "evidence": "Original Bink pixel-conversion callback table at 0x003A34A4..0x003A34D0; callback 0x00235160 observed at 0x0022B4C5 while rendering logos.bik. Recover this bounded table unchanged"
+  },
+  {
+    "start": "0x0023BD80",
+    "evidence": "Original Bink pixel-conversion callback table at 0x003A34A4..0x003A34D0; callback 0x00235160 observed at 0x0022B4C5 while rendering logos.bik. Recover this bounded table unchanged"
+  },
+  {
+    "start": "0x0025CAF9",
+    "evidence": "Observed original XPP input callback while opening videos/videointro.bik, stored in descriptor field 0x00258EC8; observed call returns to original 0x0025D37A"
+  },
+  {
+    "start": "0x000E9180",
+    "evidence": "Original menu object vtable 0x00276890..0x00276900; callback 0x000E9180 observed at original call returning to 0x0003862E after intro completion. Only two unrecovered entries in this bounded object vtable"
+  },
+  {
+    "start": "0x000E3DA0",
+    "evidence": "Original menu object vtable 0x00276890..0x00276900; callback 0x000E9180 observed at original call returning to 0x0003862E after intro completion. Only two unrecovered entries in this bounded object vtable"
+  },
+  {
+    "start": "0x00103530",
+    "evidence": "Observed original menu property virtual method at object vtable 0x00277984 slot +0x1C, invoked from original 0x000F96DC (return 0x000F96E1) after recovering E9180. Recover original method unchanged"
   }
 ]
