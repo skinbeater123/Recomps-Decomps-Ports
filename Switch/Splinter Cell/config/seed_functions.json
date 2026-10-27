@@ -1,0 +1,42 @@
+[
+  {
+    "start": "0x00015960",
+    "evidence": "European retail native startup: ICALL from 0x0003EDAF, host-run.log, 27 October 2026"
+  },
+  {
+    "start": "0x00015720",
+    "evidence": "Native startup ICALL from recovered 0x00015960; active vtable 0x00260F28 slot 0"
+  },
+  {
+    "start": "0x00015AB0",
+    "evidence": "Slot 2 in runtime-observed vtable 0x00260F28; table ends at 0x00260F44 before a UTF-16 string"
+  },
+  {
+    "start": "0x00017980",
+    "evidence": "Native original LIN loader: call from 0x0001A480, active stream vtable 0x002611C0 slot 1"
+  },
+  {
+    "start": "0x00028760",
+    "evidence": "Native original engine/INI initialization: callback invoked from 0x0002BD59 after reading common.lin and UW.ini"
+  },
+  {
+    "start": "0x000F6BF0",
+    "evidence": "Native render-device initialization from 0x00021069; runtime-observed vtable 0x002780B0 slot 24"
+  },
+  {
+    "start": "0x000F7070",
+    "evidence": "Slot 31 of runtime-observed render-device vtable 0x002780B0; 43 code pointers before class name"
+  },
+  {
+    "start": "0x000F6490",
+    "evidence": "Slot 39 of runtime-observed render-device vtable 0x002780B0; 43 code pointers before class name"
+  },
+  {
+    "start": "0x00038570",
+    "evidence": "Original object-loading callback from 0x000396BF; active archive vtable 0x002677D0 slot 4"
+  },
+  {
+    "start": "0x001F6870",
+    "evidence": "Original XDK 4928 GPU interrupt routine registered by KeConnectInterrupt; vblank reports ISR not callable without this seed"
+  }
+]
