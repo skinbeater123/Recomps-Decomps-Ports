@@ -68,13 +68,13 @@ guest address and recent call/stack state. Existing runtime API coverage and
 shader coverage remain title-dependent. Original LIN loading is preserved.
 The supplied NRO uses `-O0` for bring-up; it is not a performance result.
 
-Current rebuilt NRO: **85,072,069 bytes**, `NRO0`; matching ELF verified as
+Current rebuilt NRO: **85,145,797 bytes**, `NRO0`; matching ELF verified as
 AArch64 ELF64 PIE, generated with `-O0`. NRO SHA-256:
-`736a76e5ac8c10c71e4596c075e499bb78633990e1371b2925ffa28e6a7813ea`.
+`943fc1f3808afc4f6ddb03e05b0e866d3bc0e2a7fba31992bc8cd49f99c0177f`.
 Matching ELF SHA-256:
-`281b06570f2c90ec45e79c1d271ae62fd9a7deb9abe29f982a5108519f2932a1`.
+`8d3950f09e483eb5b11029fec59afe4fb58846b74b6d754d59754c925602e912`.
 Both artifacts and a generated-source-set checksum manifest are retained at
-`private/artifacts/sc1-736a76e5ac8c/`. These artifacts include the root CRT fix,
+`private/artifacts/sc1-943fc1f3808a/`. These artifacts include the root CRT fix,
 IF/polling, OHCI, DMA semaphore, AC97 and observed Bink/input callback recovery.
 All five focused regressions pass; all nine inventoried critical source hashes
 were rechecked and matched. No Switch hardware run is implied.
@@ -164,16 +164,31 @@ loading without the original compact-index crash. The original vtable methods `0
 executed. Property method `0x00103530` through vtable `0x00277984` slot `+0x1C` is also
 recovered and executed. Loading continues through nested original object
 serialization, then exhausts the Windows diagnostic executable's 1 MiB native
-stack while the guest stack has used about 78 KiB of its 8 MiB allocation.
-The retained native/guest backtrace names the original loading calls; an 8 MiB
-native-stack run is testing whether that host resource limit is sufficient.
+stack while the guest stack has used about 77 KiB of its 8 MiB allocation.
+The retained native/guest backtrace names the original loading calls. An 8 MiB
+host stack permits loading to finish and original script startup to run. The
+existing Horizon bootstrap already uses a 16 MiB native game-thread stack.
+
+Original core expression callbacks are recovered from initialized GNatives,
+including assignment and context operations. The original actor movement/transform callbacks now execute. The latest run
+submits 83 draws and captures the authentic SC1 loading screen with its title
+and progress bar. It stops during scene initialization at `0x00088140`, called
+from `0x00082BBC` through vtable `0x0026F4C0` slot `+0xCC`. Static disassembly
+identifies actor location/region updates. This callback is prepared for recovery
+but has not been built or executed yet.
+
+The next integration test must complete this initialization path and produce
+a complete original menu frame. Callback recovery counts alone do not justify
+another NRO build. Completed interactive menu rendering remains unproven.
 The existing controller diagnostic can issue normal Start input to shorten intro
 runs. Menu deserialization completion and authentic rendering still require
 direct evidence.
 
 Validate this same application on Switch hardware. The correct deployment
 storage is accessed at the owner-specified network endpoint. The original
-extracted files are being staged there with ISO excluded; no SC1 console launch or
+extracted files are staged there with ISO excluded. All 680 file sizes and nine
+pinned critical hashes were checked. A baseline NRO was uploaded and its hash
+verified by reading it back. No SC1 console launch or
 Horizon rendering is demonstrated. Original shadows, dynamic lighting,
 night/thermal vision, accurate movie playback/audio, gamepad behavior and mission
 progression remain unverified.

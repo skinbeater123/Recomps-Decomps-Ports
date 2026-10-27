@@ -125,6 +125,38 @@
   },
   {
     "start": "0x00103530",
-    "evidence": "Observed original menu property virtual method at object vtable 0x00277984 slot +0x1C, invoked from original 0x000F96DC (return 0x000F96E1) after recovering E9180. Recover original method unchanged"
+    "evidence": "Observed original menu property virtual method at object vtable 0x00277984 slot +0x1C, observed call returns to original 0x000F96E1 after recovering E9180. Recover original method unchanged"
+  },
+  {
+    "start": "0x00037BE0",
+    "evidence": "Original Unreal core token 0x05 callback in initialized GNatives at 0x0030D780, verified in retained pre-serializer memory capture. Original dispatcher 0x0003343F reached missing execLet token 0x0F during menu script startup. Recover the missing members of this bounded core-expression dispatch group unchanged"
+  },
+  {
+    "start": "0x0002DE50",
+    "evidence": "Original Unreal core token 0x0F callback in initialized GNatives at 0x0030D780, verified in retained pre-serializer memory capture. Original dispatcher 0x0003343F reached missing execLet token 0x0F during menu script startup. Recover the missing members of this bounded core-expression dispatch group unchanged"
+  },
+  {
+    "start": "0x00033CD0",
+    "evidence": "Original Unreal core token 0x10 callback in initialized GNatives at 0x0030D780, verified in retained pre-serializer memory capture. Original dispatcher 0x0003343F reached missing execLet token 0x0F during menu script startup. Recover the missing members of this bounded core-expression dispatch group unchanged"
+  },
+  {
+    "start": "0x00037640",
+    "evidence": "Original Unreal core token 0x11 callback in initialized GNatives at 0x0030D780, verified in retained pre-serializer memory capture. Original dispatcher 0x0003343F reached missing execLet token 0x0F during menu script startup. Recover the missing members of this bounded core-expression dispatch group unchanged"
+  },
+  {
+    "start": "0x000C7550",
+    "evidence": "Original AActor::execMove callback from bounded transform/collision native registry 0x002C3B40..0x002C3B70. Menu startup script actually called execMove (0x000C7550), returning to 0x00032E62 through original native dispatcher. Preserve original movement and collision logic"
+  },
+  {
+    "start": "0x000C78C0",
+    "evidence": "Original AActor::execSetRotation callback from bounded transform/collision native registry 0x002C3B40..0x002C3B70. Menu startup script actually called execMove (0x000C7550), returning to 0x00032E62 through original native dispatcher. Preserve original movement and collision logic"
+  },
+  {
+    "start": "0x000C7150",
+    "evidence": "Original AActor::execSetCollision callback from bounded transform/collision native registry 0x002C3B40..0x002C3B70. Menu startup script actually called execMove (0x000C7550), returning to 0x00032E62 through original native dispatcher. Preserve original movement and collision logic"
+  },
+  {
+    "start": "0x00088140",
+    "evidence": "Observed scene-initialization callback at original call 0x00082BBC, returning to 0x00082BC2, vtable 0x0026F4C0 slot +0xCC. Disassembly confirms actor location/region update and calls to original 0x000EF7B0/0x000879A0/0x00087930/0x000879F0. Prepared for the next integrated first-menu-frame test; no new build performed for this entry"
   }
 ]
