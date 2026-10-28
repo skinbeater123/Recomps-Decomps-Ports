@@ -177,6 +177,46 @@ static int sc1_vk_instance(VkInstance instance) {
     (OUT / "nv2a_pb_exec.c").write_text(text, encoding="utf-8")
     text = (UPSTREAM / "xboxrecomp/src/kernel/kernel_bridge.c").read_text(encoding="utf-8")
     text = '#include "../../src/guest_exceptions.h"\n' + text
+    text = replace_once(text, 'static SRWLOCK s_guest_threads_lock = SRWLOCK_INIT;',
+                        'static SRWLOCK s_guest_threads_lock = SRWLOCK_INIT;\n#include "../../src/thread_objects.h"')
+    text = replace_once(text, '''    ReleaseSRWLockShared(&s_guest_threads_lock);
+    return h;
+}
+
+/* KTHREAD of the thread behind a host handle''', '''    ReleaseSRWLockShared(&s_guest_threads_lock);
+    if (!h) h = sc1_thread_host(kthread);
+    return h;
+}
+
+/* KTHREAD of the thread behind a host handle''')
+    text = replace_once(text, '''    guest_thread_forget();
+    xbox_FreeThreadStack(g_thread_stack_top);''', '''    sc1_thread_exit(GetCurrentThreadId(), 0);
+    guest_thread_forget();
+    xbox_FreeThreadStack(g_thread_stack_top);''')
+    text = replace_once(text, '''        guest_thread_forget();
+        xbox_FreeThreadStack(g_thread_stack_top);''', '''        sc1_thread_exit(GetCurrentThreadId(), exit_status);
+        guest_thread_forget();
+        xbox_FreeThreadStack(g_thread_stack_top);''')
+    text = replace_once(text, '''            HANDLE h = s_handle_table[i];
+            s_handle_table[i] = NULL;''', '''            HANDLE h = s_handle_table[i];
+            sc1_thread_close(h);
+            s_handle_table[i] = NULL;''')
+    start = text.index('static void bridge_ObReferenceObjectByHandle(void)')
+    end = text.index('/* ── RtlRaiseException', start)
+    text = text[:start] + '''static void bridge_ObReferenceObjectByHandle(void)
+{
+    uint32_t handle = STACK_ARG(0), object_ptr = STACK_ARG(2), object;
+    if (handle == 0xFFFFFFFEu) object = guest_thread_self();
+    else object = sc1_thread_reference(bridge_resolve_handle(handle));
+    if (object_ptr) BRIDGE_MEM32(object_ptr) = object;
+    g_eax = object ? 0 : 0xC0000008u; /* STATUS_INVALID_HANDLE */
+}
+
+''' + text[end:]
+    text = replace_once(text, '    xbox_ObfDereferenceObject(XBOX_TO_NATIVE(g_ecx));',
+                        '    if (!sc1_thread_dereference(g_ecx)) xbox_ObfDereferenceObject(XBOX_TO_NATIVE(g_ecx));')
+    text = replace_once(text, '    xbox_ObfReferenceObject(XBOX_TO_NATIVE(g_ecx));',
+                        '    if (!sc1_thread_addref(g_ecx)) xbox_ObfReferenceObject(XBOX_TO_NATIVE(g_ecx));')
     text = replace_once(text, '#define GUEST_CALL(f) do {', '''void sc1_eh_get_gil(int *depth, int *atomic) {
     *depth = t_gil_depth; *atomic = t_gil_nopreempt;
 }

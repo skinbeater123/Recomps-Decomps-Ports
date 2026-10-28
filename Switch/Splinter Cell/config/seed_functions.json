@@ -274,5 +274,21 @@
   {
     "start": "0x0016129F",
     "evidence": "Observed original class construction callback invoked at 0x0004BBA6 (return 0x0004BBAC), stored in class field +0x4B0. Original class registration pushes this exact unaligned callback at 0x001612D4; it tests its argument and tail-jumps to original 0x001611EE. Recover unchanged."
+  },
+  {
+    "start": "0x001AFF00",
+    "evidence": "Original system-thread routine observed as PsCreateSystemThreadEx context at runtime after the diagnostic DSP acknowledgement; original instruction 0x001B0251 passes 0x001AFF00 as the worker entry. Recover the original worker body unchanged; this execution was diagnostic because DSP processing remains unimplemented."
+  },
+  {
+    "start": "0x000CAEE0",
+    "evidence": "Original AActor::ConsoleCommand native registered at 0x002C3B84..0x002C3B94. Original menu script reached execLockRootMotion 0x000CB920 from 0x00034F6D after the host thread-object status wait completed. Recover the original function unchanged."
+  },
+  {
+    "start": "0x000CB920",
+    "evidence": "Original AActor::LockRootMotion native registered at 0x002C3B84..0x002C3B94. Original menu script reached execLockRootMotion 0x000CB920 from 0x00034F6D after the host thread-object status wait completed. Recover the original function unchanged."
+  },
+  {
+    "start": "0x000C6490",
+    "evidence": "Original AActor::GetRootRotationDelta native registered at 0x002C3B84..0x002C3B94. Original menu script reached execLockRootMotion 0x000CB920 from 0x00034F6D after the host thread-object status wait completed. Recover the original function unchanged."
   }
 ]

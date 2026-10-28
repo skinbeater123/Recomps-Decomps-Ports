@@ -54,7 +54,7 @@ int main(void) {
 }
 '''
 
-with tempfile.TemporaryDirectory() as tmp:
+with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
     tmp = Path(tmp)
     (tmp / "test.c").write_text(TEST)
     vs = Path(r"C:\Programming\VisualStudio\2026\Community")

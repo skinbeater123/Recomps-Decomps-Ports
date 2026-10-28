@@ -30,6 +30,27 @@ def finish_generation():
     staging = PROJECT / "private" / "generated-stage"
     from prepare_exceptions import prepare
     prepare(staging)
+    # The original DirectSound routine computes the DSP scratch address.
+    # Register its command word with the existing passthrough DSP model,
+    # without replacing any original instruction or fixing a guest address.
+    dsp_files = []
+    for path in staging.glob("recomp_*.c"):
+        text = path.read_text(encoding="utf-8")
+        match = re.search(r'void sub_0023F51E\(void\)\n\{.*?\n\}', text, re.S)
+        if not match:
+            continue
+        body = match.group(0)
+        marker = '    ebx = MMIO_RD32(eax);'
+        if body.count(marker) != 1:
+            raise RuntimeError("Original DirectSound scratch calculation changed")
+        body = body.replace(marker, marker + '\n    sc1_register_dsp_scratch(ebx);', 1)
+        text = text[:match.start()] + body + text[match.end():]
+        text = text.replace('#include <math.h>',
+                            '#include <math.h>\nvoid sc1_register_dsp_scratch(uint32_t);', 1)
+        path.write_text(text, encoding="utf-8")
+        dsp_files.append(path)
+    if len(dsp_files) != 1:
+        raise RuntimeError("Expected one original DirectSound command function")
     stubs = staging / "recomp_stubs_unresolved.c"
     text = stubs.read_text()
     text = re.sub(r'void (sub_([0-9A-Fa-f]+))\(void\) \{[^\n]*\}',

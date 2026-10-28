@@ -185,11 +185,22 @@ frames; unsupported handlers and continuations fail explicitly. The focused
 frame test covers nested frames, stack/target matching, lock-state restoration
 and removal of stale frames. No XboxLive files are fabricated.
 
-The latest host run passed original `AActor::execPlayAnim`, rotator interpolation
-and sound-duration operations during Echelon character startup. It stops at
-the original unaligned class-construction callback `0x0016129F`, called from
-`0x0004BBA6`; the original registration passes that exact address at
-`0x001612D4`. Its recovery is prepared for the next host run and remains
+The host passed original `AActor::execPlayAnim`, rotator interpolation,
+sound-duration and the unaligned class-construction callback `0x0016129F`.
+DirectSound then posted a DSP command and waited at `0x0023F685`. The approved
+runtime's passthrough DSP does not run the effects program; its existing command
+acknowledgement is now registered from the scratch pointer calculated by the
+original routine. No fixed guest address is used, and DSP effects remain
+unimplemented. This lets startup continue, but is not evidence of accurate
+audio processing.
+
+The next host wait at `0x000220C2` polled a terminated worker's exit status.
+The runtime had discarded the worker's guest object while its handle remained
+open, then returned success with a null object. Thread references now keep a
+guest-visible object until both handle and references are released; the
+original status polling proceeds. The latest host run reaches menu configuration
+and stops at original `AActor::execLockRootMotion` `0x000CB920`, called from
+`0x00034F6D`. That callback is prepared for the next host run but remains
 unverified.
 
 The next host integration test continues this initialization path toward a

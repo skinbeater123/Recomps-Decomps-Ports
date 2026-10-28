@@ -53,7 +53,7 @@ set_property(TARGET xbox_nv2a_vk PROPERTY INTERFACE_LINK_LIBRARIES "${NVK_LINK}"
 endif()
 file(GLOB GENERATED CONFIGURE_DEPENDS "${ROOT}/generated/*.c")
 add_executable(sc1 private/host/main.c private/host/switch_nx.c
-  private/host/switch_saltynx.c src/recomp_manual.c src/cpu.c src/xbe_identity.c src/guest_exceptions.c ${GENERATED})
+  private/host/switch_saltynx.c src/recomp_manual.c src/cpu.c src/xbe_identity.c src/guest_exceptions.c src/dsp_commands.c ${GENERATED})
 target_include_directories(sc1 PRIVATE "${ROOT}/generated" "${XBOXRECOMP_DIR}/include"
   "${XBOXRECOMP_DIR}/src/apu" "${CMAKE_CURRENT_BINARY_DIR}")
 target_link_libraries(sc1 PRIVATE xboxrecomp)

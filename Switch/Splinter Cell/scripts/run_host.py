@@ -29,7 +29,7 @@ with (GAME / "default.xbe").open("rb") as source:
         raise SystemExit("Private executable copy hash mismatch")
 environment = dict(os.environ, NFSU2_GAME_DIR=str(GAME), RECOMP_VBLANK="1",
                    RECOMP_AC97_READY="plain", RECOMP_USB="1", RECOMP_PB_EXEC="1",
-                   RECOMP_UNIMPL_TRAP="1", RECOMP_WATCHDOG_SECS="10", RECOMP_WATCHDOG_KEEP="1")
+                   RECOMP_UNIMPL_TRAP="1", RECOMP_WATCHDOG_SECS=os.environ.get("RECOMP_WATCHDOG_SECS", "10"), RECOMP_WATCHDOG_KEEP="1")
 # Prevent Windows error-reporting dialogs from obstructing a bounded diagnostic.
 ctypes.windll.kernel32.SetErrorMode(0x0001 | 0x0002 | 0x8000)
 log = ROOT / "logs/host-run.log"
