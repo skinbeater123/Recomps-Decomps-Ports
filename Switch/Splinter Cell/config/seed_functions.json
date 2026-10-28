@@ -350,5 +350,29 @@
   {
     "start": "0x0014CB70",
     "evidence": "Original indirect callback reached from 0x00032F22 during training initialization after 0x00076F70 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x0014DCA0",
+    "evidence": "Original indirect callback reached from 0x00032F22 during training initialization after 0x0014CB70 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x0014DDD0",
+    "evidence": "Original indirect callback reached from 0x00032F22 during training initialization after 0x0014DCA0 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00077300",
+    "evidence": "Original indirect callback reached from 0x00032E62 during training initialization after 0x0014DDD0 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00023FF0",
+    "evidence": "Original indirect callback reached from 0x0017BD6A during training initialization after 0x00077300 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00032BC0",
+    "evidence": "Original indirect callback reached from 0x00034F6D during training startup after 0x00023FF0 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x0018B510",
+    "evidence": "Original indirect callback reached on guest worker stack during training scene startup after 0x00032BC0. Original XBE code reference at 0x0018B63E identifies the callback. Recover original body and calling convention unchanged."
   }
 ]
