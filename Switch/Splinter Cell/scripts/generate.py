@@ -51,60 +51,57 @@ def finish_generation():
         dsp_files.append(path)
     if len(dsp_files) != 1:
         raise RuntimeError("Expected one original DirectSound command function")
-    # Diagnose a reached timing failure without altering the driver's writes.
-    flip_files = []
+    prepare_d3d(staging)
+    publish_generation(staging)
+
+
+def prepare_d3d(staging):
+    # Locate each original handler independently: generated chunk boundaries move.
+    specs = {
+        "sub_001F6D20": [("loc_001F6DD4: ;", "loc_001F6DD4: ;\n    sc1_trace_flip_queue(edi, MMIO_RD32(esi + 0x1C0));")],
+        "sub_001F6990": [
+            ("    if (CMP_NE(_fa, _fb)) goto loc_001F6A51;", "    sc1_trace_flip_retire(edx, edi);\n    if (CMP_NE(_fa, _fb)) goto loc_001F6A51;"),
+            ("    MMIO_WR32(esi + 0x1BC, (ecx));", "    MMIO_WR32(esi + 0x1BC, (ecx));\n    nv2a_pb_flip_retired(1);")],
+        "sub_001F6A60": [
+            ("loc_001F6A84: ;", "loc_001F6A84: ;\n    nv2a_pb_flip_retired(0);"),
+            ("    RECOMP_PREEMPT();", "    uint8_t sc1_irql = sc1_d3d_enter();\n    xbox_Nv2aVblankTaken();\n    RECOMP_PREEMPT();"),
+            ("return;", "sc1_d3d_leave(sc1_irql); return;")],
+        "sub_001F6FB0": [
+            ("    RECOMP_PREEMPT();", "    uint8_t sc1_irql = sc1_d3d_enter();\n    uint32_t sc1_source = sc1_pgraph_enter();\n    RECOMP_PREEMPT();"),
+            ("return;", "sc1_pgraph_leave(sc1_source); sc1_d3d_leave(sc1_irql); return;")],
+    }
+    found = set()
+    declarations = ("\nvoid sc1_trace_flip_queue(uint32_t, uint32_t);"
+        "\nvoid sc1_trace_flip_retire(uint32_t, uint32_t);"
+        "\nvoid nv2a_pb_flip_retired(unsigned);"
+        "\nuint8_t sc1_d3d_enter(void);\nvoid sc1_d3d_leave(uint8_t);"
+        "\nuint32_t sc1_pgraph_enter(void);\nvoid sc1_pgraph_leave(uint32_t);"
+        "\nvoid xbox_Nv2aVblankTaken(void);")
     for path in staging.glob("recomp_*.c"):
         text = path.read_text(encoding="utf-8")
-        match = re.search(r'void sub_001F6D20\(void\)\n\{.*?\n\}', text, re.S)
-        if not match:
-            continue
-        body = match.group(0)
-        marker = 'loc_001F6DD4: ;'
-        if body.count(marker) != 1:
-            raise RuntimeError("Original flip enqueue changed")
-        body = body.replace(marker, marker + '\n    sc1_trace_flip_queue(edi, MMIO_RD32(esi + 0x1C0));', 1)
-        text = text[:match.start()] + body + text[match.end():]
-        retire = re.search(r'void sub_001F6990\(void\)\n\{.*?\n\}', text, re.S)
-        if not retire:
-            raise RuntimeError("Original flip retirement missing")
-        retire_body = retire.group(0)
-        marker = '    if (CMP_NE(_fa, _fb)) goto loc_001F6A51;'
-        if retire_body.count(marker) != 1:
-            raise RuntimeError("Original flip retirement changed")
-        retire_body = retire_body.replace(marker, '    sc1_trace_flip_retire(edx, edi);\n' + marker, 1)
-        marker = '    MMIO_WR32(esi + 0x1BC, (ecx));'
-        if retire_body.count(marker) != 1:
-            raise RuntimeError("Original flip retirement counter changed")
-        retire_body = retire_body.replace(marker, marker + '\n    nv2a_pb_flip_retired(1);', 1)
-        text = text[:retire.start()] + retire_body + text[retire.end():]
-        vblank = re.search(r'void sub_001F6A60\(void\)\n\{.*?\n\}', text, re.S)
-        if not vblank:
-            raise RuntimeError("Original vblank routine missing")
-        vblank_body = vblank.group(0)
-        marker = 'loc_001F6A84: ;'
-        if vblank_body.count(marker) != 1:
-            raise RuntimeError("Original vblank counter changed")
-        vblank_body = vblank_body.replace(marker, marker + '\n    nv2a_pb_flip_retired(0);', 1)
-        marker = '    RECOMP_PREEMPT();'
-        if vblank_body.count(marker) != 1 or vblank_body.count('return;') != 1:
-            raise RuntimeError("Original vblank exit shape changed")
-        vblank_body = vblank_body.replace(marker, '    uint8_t sc1_irql = sc1_d3d_enter();\n    xbox_Nv2aVblankTaken();\n' + marker, 1)
-        vblank_body = vblank_body.replace('return;', 'sc1_d3d_leave(sc1_irql); return;', 1)
-        text = text[:vblank.start()] + vblank_body + text[vblank.end():]
-        pgraph = re.search(r'void sub_001F6FB0\(void\)\n\{.*?\n\}', text, re.S)
-        if not pgraph:
-            raise RuntimeError("Original PGRAPH handler missing")
-        pgraph_body = pgraph.group(0)
-        if pgraph_body.count(marker) != 1 or pgraph_body.count('return;') != 1:
-            raise RuntimeError("Original PGRAPH exit shape changed")
-        pgraph_body = pgraph_body.replace(marker, '    uint8_t sc1_irql = sc1_d3d_enter();\n    uint32_t sc1_source = sc1_pgraph_enter();\n' + marker, 1)
-        pgraph_body = pgraph_body.replace('return;', 'sc1_pgraph_leave(sc1_source); sc1_d3d_leave(sc1_irql); return;', 1)
-        text = text[:pgraph.start()] + pgraph_body + text[pgraph.end():]
-        text = text.replace('#include <math.h>', '#include <math.h>\nvoid sc1_trace_flip_queue(uint32_t, uint32_t);\nvoid sc1_trace_flip_retire(uint32_t, uint32_t);\nvoid nv2a_pb_flip_retired(unsigned);\nuint8_t sc1_d3d_enter(void);\nvoid sc1_d3d_leave(uint8_t);\nuint32_t sc1_pgraph_enter(void);\nvoid sc1_pgraph_leave(uint32_t);\nvoid xbox_Nv2aVblankTaken(void);', 1)
-        path.write_text(text, encoding="utf-8")
-        flip_files.append(path)
-    if len(flip_files) != 1:
-        raise RuntimeError("Expected one original flip enqueue function")
+        changed = False
+        for name, replacements in specs.items():
+            match = re.search(r'void ' + name + r'\(void\)\n\{.*?\n\}', text, re.S)
+            if not match:
+                continue
+            if name in found:
+                raise RuntimeError(f"Duplicate original D3D handler {name}")
+            body = match.group(0)
+            for before, after in replacements:
+                if body.count(before) != 1:
+                    raise RuntimeError(f"Original D3D handler {name} changed at {before!r}")
+                body = body.replace(before, after, 1)
+            text = text[:match.start()] + body + text[match.end():]
+            found.add(name)
+            changed = True
+        if changed:
+            text = text.replace('#include <math.h>', '#include <math.h>' + declarations, 1)
+            path.write_text(text, encoding="utf-8")
+    if found != set(specs):
+        raise RuntimeError(f"Missing original D3D handlers: {sorted(set(specs) - found)}")
+
+
+def publish_generation(staging):
     stubs = staging / "recomp_stubs_unresolved.c"
     text = stubs.read_text()
     text = re.sub(r'void (sub_([0-9A-Fa-f]+))\(void\) \{[^\n]*\}',

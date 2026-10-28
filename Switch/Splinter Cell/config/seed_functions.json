@@ -322,5 +322,21 @@
   {
     "start": "0x00064520",
     "evidence": "Original indirect target reached from 0x00032F22 in training script startup after original callback 0x00137070. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x000660B0",
+    "evidence": "Original indirect target reached from 0x00064650 in training script startup after 0x00064520 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00103070",
+    "evidence": "Original indirect target reached from 0x000F931C during training startup after 0x000660B0 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00101200",
+    "evidence": "Original indirect object callback reached from 0x000F96B1 during training startup after 0x00103070. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00103FE0",
+    "evidence": "Original indirect property callback reached from 0x000F96E1 during training object initialization after 0x00101200. Recover the original body and calling convention unchanged."
   }
 ]
