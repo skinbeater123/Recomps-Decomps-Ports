@@ -170,6 +170,27 @@ static int sc1_vk_instance(VkInstance instance) {
     }''')
     (OUT / "xbox_memory_layout.c").write_text(text, encoding="utf-8")
     text = (UPSTREAM / "xboxrecomp/src/kernel/nv2a_pb_exec.c").read_text(encoding="utf-8")
+    text = '#include "../../src/software_combiner.h"\n#include "../../src/software_blend.h"\n' + text
+    text = replace_once(text, '    int textured = uv && s_gpu.tex.valid;', '''    int textured = uv && s_gpu.tex.valid;
+    int menu_combiner = sc1_menu_combiner_matches(s_reg[0x1E60/4], s_reg[0x0AC0/4],
+        s_reg[0x1E40/4], s_reg[0x0260/4], s_reg[0x0AA0/4], s_reg[0x0288/4], s_reg[0x028C/4]);''')
+    text = replace_once(text, '                    put_pixel(mem, bpp, x, y, texel);',
+                        '                    put_pixel(mem, bpp, x, y, menu_combiner ? sc1_menu_combiner(texel, argb) : texel);')
+    blend_start = text.index('    /* src*srcAlpha + dst*(1-srcAlpha), and only that pair.')
+    blend_end = text.index('\n    if (bpp == 4) {', blend_start)
+    text = text[:blend_start] + '''    /* Apply the observed NV2A ADD blend factors to all four channels. */
+    if (s_gpu.blend_enable && s_gpu.rs.blend_eq == 0x8006u) {
+        uint32_t dst, blended;
+        if (bpp == 4) dst = ((const uint32_t *)row)[x];
+        else {
+            uint32_t t = ((const uint16_t *)row)[x];
+            dst = 0xff000000u | ((t & 0xf800u) << 8) |
+                  ((t & 0x07e0u) << 5) | ((t & 0x001fu) << 3);
+        }
+        if (sc1_blend_add(argb, dst, s_gpu.blend_sfactor, s_gpu.blend_dfactor, &blended))
+            argb = blended;
+    }
+''' + text[blend_end:]
     text = replace_once(text, '    if (method == 0x1D70 && s_sem_va) {', '''    extern int sc1_gpu_command(uint8_t *, uint32_t, uint32_t, uint32_t);
     if (sc1_gpu_command((uint8_t *)xbox_GetMemoryOffset(), subch, method, param))
         return;

@@ -198,18 +198,31 @@ The next host wait at `0x000220C2` polled a terminated worker's exit status.
 The runtime had discarded the worker's guest object while its handle remained
 open, then returned success with a null object. Thread references now keep a
 guest-visible object until both handle and references are released; the
-original status polling proceeds. The latest host run reaches menu configuration
-and stops at original `AActor::execLockRootMotion` `0x000CB920`, called from
-`0x00034F6D`. That callback is prepared for the next host run but remains
-unverified.
+original status polling proceeds. Original `AActor::execLockRootMotion`
+`0x000CB920` and its branch arm `0x00080874` also execute; menu configuration
+and the original menu loop now continue beyond both.
 
-The next host integration test continues this initialization path toward a
-complete original menu frame. Completed interactive menu rendering remains unproven.
-The existing controller diagnostic can issue normal Start input to shorten intro
-runs. Menu deserialization completion and authentic rendering still require
-direct evidence.
+The original main menu now renders and accepts controller navigation on the
+Windows diagnostic host. A recorded run moved the selection from Start Game to
+Settings, then opened the original Settings screen. The same run navigated the
+original profile keyboard and backed out through Profile Settings. The Windows
+software diagnostic renderer needed the observed texture/diffuse combiner and
+additive and color-multiply blend factors; unsupported combinations remain
+outside that narrow correction. The resulting frames still show visual artifacts.
 
-Validate this same application on Switch hardware. The correct deployment
+The milestone NRO SHA-256 is
+`38b8b9181ec670f95f4946eb43965afc653f4ab65c3f3c236c2a529625aa1f2a`;
+its matching ELF SHA-256 is
+`4784a3fd8f35abf9dc00756c131c82dcb79371b9a9dad3cf19d3a1f531b02261`.
+Both and the generated-set checksum are retained in
+`private/artifacts/sc1-38b8b9181ec6`. The NRO predates the later Windows-only
+software-renderer corrections. Eden launched this NRO and the guest opened the
+original menu assets and Bink videos, but guest Vulkan device enumeration failed
+with `no Vulkan device` and the log recorded zero rendered frames. Eden itself
+detected the host GPU; the cause of the guest enumeration failure remains open.
+No Eden menu rendering or physical Switch execution of this NRO is demonstrated.
+
+The correct Switch deployment
 storage is accessed at the owner-specified network endpoint. The original
 extracted files are staged there with ISO excluded. All 680 file sizes and nine
 pinned critical hashes were checked. A baseline NRO was uploaded and its hash

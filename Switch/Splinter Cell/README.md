@@ -73,9 +73,11 @@ gamepad mapping (Switch buttons by label); SC1 gameplay controls remain untested
 python scripts/check_cpu_probe.py
 python scripts/check_crt_copy.py
 python scripts/check_xpp_interrupts.py
-  python scripts/check_guest_exceptions.py
-  python scripts/check_dsp_commands.py
-  python scripts/check_thread_objects.py
+python scripts/check_guest_exceptions.py
+python scripts/check_dsp_commands.py
+python scripts/check_thread_objects.py
+python scripts/check_software_combiner.py
+python scripts/check_software_blend.py
 python scripts/check_gpu_commands.py
 python scripts/check_ac97_reset.py
 python scripts/run_host.py --seconds 30

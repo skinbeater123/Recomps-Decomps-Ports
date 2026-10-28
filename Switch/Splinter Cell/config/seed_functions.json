@@ -290,5 +290,9 @@
   {
     "start": "0x000C6490",
     "evidence": "Original AActor::GetRootRotationDelta native registered at 0x002C3B84..0x002C3B94. Original menu script reached execLockRootMotion 0x000CB920 from 0x00034F6D after the host thread-object status wait completed. Recover the original function unchanged."
+  },
+  {
+    "start": "0x00080874",
+    "evidence": "Observed original branch arm from actor function 0x00080720 at branch 0x00080794 during execLockRootMotion. The disassembler split the original control flow at 0x00080857 and left this direct target unresolved; original bytes at 0x00080874 continue the existing guest stack frame and eventually execute the original epilogue. Recover the original branch unchanged."
   }
 ]
