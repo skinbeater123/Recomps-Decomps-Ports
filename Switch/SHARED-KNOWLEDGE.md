@@ -1,5 +1,7 @@
 # Shared Xbox -> Switch 1 knowledge checkpoint
 
+> **Historical checkpoint with later status correction (2026-10-29).** The technical diagnostic results below describe evidence available **on 26 Oct 2026**; they must not be read as the *current* end-state of BLACK. On **27 Oct 2026 the owner reported that BLACK was fully playable on actual Switch 1 hardware**, with video/cutscene stuttering still being worked on. The exact running build commit, logs and measured FPS have not yet been ingested into this central repository. Preserve the original diagnostic details as source context, but treat their “not playable” conclusion as superseded. See [evidence register](Knowledge/EVIDENCE-REGISTER.md) and [current index](Knowledge/README.md).
+
 **Status date:** 2026-10-26. **Provenance:** earlier BLACK-specific reports from another workspace: `FOUNDATION-REPORT.md`, `build-evidence.json`, `HARDWARE-GATE.md`, `NXPORT-REVIEW.md`, `VULKAN-GATE.md` and private hardware-run evidence. This file is a **human-curated transfer summary**; those exact raw artifacts have **not** been imported into this public repo and should be requested or read locally if present. Never invent their contents or imply that proof for BLACK automatically transfers to Buffy.
 
 ## Hardware proven for BLACK diagnostics, NOT for Buffy
@@ -10,7 +12,7 @@
 - One ordinary page using CodeMemory passed; broader ordinary allocation/decommit semantics remain to be validated. Shared-memory and raw-physical mechanisms returned resource/state errors. These are not evidence of a general impossibility.
 - Installed diagnostic exposed HOS 20.3.0, hbloader v2.4.4; exact Atmosphere version/Switch model not recorded. Hints are not successful SVC calls.
 - Compiled generated BLACK functions, SDK objects and two diagnostic NROs are evidence of *compilability*, **not** playable game code. Earlier regenerated BLACK analysis: 15,042 functions and 680,140 decoded instructions across 64 partitions. Three sampled partitions (0, 60, 63) compiled at `-O2`.
-- No BLACK playable build or native Vulkan/NVK clear/present proof established. Graphics remains blocked by missing genuine Horizon NVK target SDK and shader dependencies.
+- **26 Oct only (superseded as a current status claim):** At that diagnostic checkpoint, no BLACK playable build or native Vulkan/NVK clear/present proof was established in the evidence available there; target SDK and shader dependencies were blockers in that environment. **On 27 Oct the owner subsequently reported playable real-Switch BLACK**, so do not cite this historical line as a present-day gameplay or graphics blocker. The current renderer/toolchain details must be reconciled from the game fork.
 
 ## Environment previously checked
 
