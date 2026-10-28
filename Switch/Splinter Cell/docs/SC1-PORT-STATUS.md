@@ -185,10 +185,12 @@ frames; unsupported handlers and continuations fail explicitly. The focused
 frame test covers nested frames, stack/target matching, lock-state restoration
 and removal of stale frames. No XboxLive files are fabricated.
 
-The latest host run passed original `AActor::execPlayAnim` and entered Echelon
-character startup. It stops at original `AActor::execInterpolateRotatorValue`
-`0x000638D0`, called from `0x00034F6D`. That callback and related character
-natives are prepared for the next host run; their execution remains unverified.
+The latest host run passed original `AActor::execPlayAnim`, rotator interpolation
+and sound-duration operations during Echelon character startup. It stops at
+the original unaligned class-construction callback `0x0016129F`, called from
+`0x0004BBA6`; the original registration passes that exact address at
+`0x001612D4`. Its recovery is prepared for the next host run and remains
+unverified.
 
 The next host integration test continues this initialization path toward a
 complete original menu frame. Completed interactive menu rendering remains unproven.

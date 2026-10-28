@@ -266,5 +266,13 @@
   {
     "start": "0x00067E90",
     "evidence": "Original AActor::GetSoundPosition native from character/animation registration group 0x002C3C74..0x002C3C94. Original Echelon character startup reached execInterpolateRotatorValue 0x000638D0 from 0x00034F6D. Recover original functions unchanged."
+  },
+  {
+    "start": "0x00064800",
+    "evidence": "Original AActor::execGetSoundDuration registered at 0x002C3A7C. Observed at native dispatch return 0x00032E92 after the original rotator interpolation callback executed during Echelon character startup. Recover the original sound-duration operation unchanged."
+  },
+  {
+    "start": "0x0016129F",
+    "evidence": "Observed original class construction callback invoked at 0x0004BBA6 (return 0x0004BBAC), stored in class field +0x4B0. Original class registration pushes this exact unaligned callback at 0x001612D4; it tests its argument and tail-jumps to original 0x001611EE. Recover unchanged."
   }
 ]

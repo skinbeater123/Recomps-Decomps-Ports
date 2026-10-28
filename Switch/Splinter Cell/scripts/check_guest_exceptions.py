@@ -2,8 +2,24 @@
 import subprocess
 import tempfile
 from pathlib import Path
+from prepare_exceptions import instrument
 
 ROOT = Path(__file__).resolve().parents[1]
+fixture = '''#include <math.h>
+void sub_00001000(void)
+{
+    uint32_t ebp = 0;
+    uint32_t g_eax = recomp_leaf_ld_eax(); uint32_t g_ecx = recomp_leaf_ld_ecx(); uint32_t g_edx = recomp_leaf_ld_edx(); uint32_t g_ebx = recomp_leaf_ld_ebx(); uint32_t g_esi = recomp_leaf_ld_esi(); uint32_t g_edi = recomp_leaf_ld_edi(); uint32_t g_esp = recomp_leaf_ld_esp();
+    MEM32(XBOX_FS_BASE) = esp;
+    MEM32(ebp + -16) = esp;
+loc_00001004: ;
+    return;
+}
+'''
+transformed, count = instrument(fixture)
+assert count == 1 and 'case 0x00001004u: goto loc_00001004;' in transformed
+assert 'sc1_eh_leave(&sc1_eh_frame); return;' in transformed
+assert instrument(fixture.replace('MEM32(XBOX_FS_BASE) = esp;', ''))[1] == 0
 TEST = r'''
 #include "guest_exceptions.h"
 #include <assert.h>
