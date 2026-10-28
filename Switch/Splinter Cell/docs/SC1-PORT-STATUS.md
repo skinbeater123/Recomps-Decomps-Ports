@@ -170,16 +170,28 @@ host stack permits loading to finish and original script startup to run. The
 existing Horizon bootstrap already uses a 16 MiB native game-thread stack.
 
 Original core expression callbacks are recovered from initialized GNatives,
-including assignment and context operations. The original actor movement/transform callbacks now execute. The latest run
-submits 83 draws and captures the authentic SC1 loading screen with its title
-and progress bar. It stops during scene initialization at `0x00088140`, called
-from `0x00082BBC` through vtable `0x0026F4C0` slot `+0xCC`. Static disassembly
-identifies actor location/region updates. This callback is prepared for recovery
-but has not been built or executed yet.
+including assignment and context operations. The original actor movement/transform
+callbacks execute. A host run submits 83 draws and captures the authentic SC1
+loading screen with its title and progress bar. The original region update
+callback `0x00088140`, called at `0x00082BBC`, now executes, followed by original
+actor trace, string, state and animation callbacks.
 
-The next integration test must complete this initialization path and produce
-a complete original menu frame. Callback recovery counts alone do not justify
-another NRO build. Completed interactive menu rendering remains unproven.
+The engine raises a C++ exception while looking up an XboxLive package. The
+runtime previously returned from `RtlRaiseException` without dispatching it,
+which led to a subsequent access violation. A host-tested implementation calls
+the original guest handler and resumes its chosen continuation in the existing
+lifted function. Landing support is limited to recognizable guest exception
+frames; unsupported handlers and continuations fail explicitly. The focused
+frame test covers nested frames, stack/target matching, lock-state restoration
+and removal of stale frames. No XboxLive files are fabricated.
+
+The latest host run passed original `AActor::execPlayAnim` and entered Echelon
+character startup. It stops at original `AActor::execInterpolateRotatorValue`
+`0x000638D0`, called from `0x00034F6D`. That callback and related character
+natives are prepared for the next host run; their execution remains unverified.
+
+The next host integration test continues this initialization path toward a
+complete original menu frame. Completed interactive menu rendering remains unproven.
 The existing controller diagnostic can issue normal Start input to shorten intro
 runs. Menu deserialization completion and authentic rendering still require
 direct evidence.

@@ -176,6 +176,74 @@ static int sc1_vk_instance(VkInstance instance) {
     if (method == 0x1D70 && s_sem_va) {''')
     (OUT / "nv2a_pb_exec.c").write_text(text, encoding="utf-8")
     text = (UPSTREAM / "xboxrecomp/src/kernel/kernel_bridge.c").read_text(encoding="utf-8")
+    text = '#include "../../src/guest_exceptions.h"\n' + text
+    text = replace_once(text, '#define GUEST_CALL(f) do {', '''void sc1_eh_get_gil(int *depth, int *atomic) {
+    *depth = t_gil_depth; *atomic = t_gil_nopreempt;
+}
+void sc1_eh_restore_gil(int depth, int atomic) {
+    if ((depth > 0) != (t_gil_depth > 0)) {
+        fprintf(stderr, "[SC1] Exception crossed guest lock ownership\\n");
+        abort();
+    }
+    t_gil_depth = depth; t_gil_nopreempt = atomic;
+}
+#define GUEST_CALL(f) do {''')
+    start = text.index('static void bridge_RtlRaiseException(void)')
+    end = text.index('/* ── MmMapIoSpace', start)
+    text = text[:start] + '''static void bridge_RtlRaiseException(void)
+{
+    uint32_t record = STACK_ARG(0);
+    uint32_t code = record ? BRIDGE_MEM32(record) : 0;
+    if (code >= 0xC0000090u && code <= 0xC0000096u) {
+        _clearfp(); g_eax = 0; return;
+    }
+    if (code != 0xE06D7363u) {
+        fprintf(stderr, "[SC1] Unsupported guest exception %08X at record %08X\\n", code, record);
+        abort();
+    }
+    uint32_t saved_sp = g_esp, saved_ebp = g_ebp, saved_seh_ebp = g_seh_ebp;
+    uint32_t saved_eax = g_eax, saved_ecx = g_ecx, saved_edx = g_edx;
+    uint32_t saved_ebx = g_ebx, saved_esi = g_esi, saved_edi = g_edi;
+    uint32_t context = (saved_sp - 0x300u) & ~15u;
+    uint32_t frame = BRIDGE_MEM32(XBOX_FS_BASE), previous = 0;
+    memset(XBOX_TO_NATIVE(context), 0, 0x2cc);
+    BRIDGE_MEM32(context + 0x9c) = saved_edi; BRIDGE_MEM32(context + 0xa0) = saved_esi;
+    BRIDGE_MEM32(context + 0xa4) = saved_ebx; BRIDGE_MEM32(context + 0xa8) = saved_edx;
+    BRIDGE_MEM32(context + 0xac) = saved_ecx; BRIDGE_MEM32(context + 0xb0) = saved_eax;
+    BRIDGE_MEM32(context + 0xb4) = saved_ebp; BRIDGE_MEM32(context + 0xb8) = BRIDGE_MEM32(record + 12);
+    BRIDGE_MEM32(context + 0xc4) = saved_sp;
+    sc1_eh_dispatch_enter();
+    for (int i = 0; i < 64 && frame != 0xffffffffu && frame; ++i) {
+        if ((frame & 3u) || frame >= 0x03fffff0u || (previous && frame <= previous)) break;
+        uint32_t next = BRIDGE_MEM32(frame), handler_va = BRIDGE_MEM32(frame + 4);
+        recomp_func_t handler = recomp_lookup(handler_va);
+        if (!handler) handler = recomp_lookup_manual(handler_va);
+        if (!handler) handler = recomp_lookup_kernel(handler_va);
+        if (!handler) {
+            fprintf(stderr, "[SC1] Missing guest exception handler %08X at frame %08X\\n", handler_va, frame);
+            abort();
+        }
+        g_esp = context - 20;
+        BRIDGE_MEM32(g_esp) = 0; BRIDGE_MEM32(g_esp + 4) = record;
+        BRIDGE_MEM32(g_esp + 8) = frame; BRIDGE_MEM32(g_esp + 12) = context;
+        BRIDGE_MEM32(g_esp + 16) = 0;
+        GUEST_CALL(handler);
+        uint32_t disposition = g_eax;
+        g_esp = saved_sp; g_ebp = saved_ebp; g_seh_ebp = saved_seh_ebp;
+        g_eax = saved_eax; g_ecx = saved_ecx; g_edx = saved_edx;
+        g_ebx = saved_ebx; g_esi = saved_esi; g_edi = saved_edi;
+        if (disposition != 1u) {
+            fprintf(stderr, "[SC1] Unsupported guest exception disposition %08X\\n", disposition);
+            abort();
+        }
+        previous = frame; frame = next;
+    }
+    sc1_eh_dispatch_leave();
+    fprintf(stderr, "[SC1] Unhandled guest C++ exception at record %08X\\n", record);
+    abort();
+}
+
+''' + text[end:]
     # SC1's original binned allocator indexes pool metadata by address >> 16.
     # NtAllocateVirtualMemory must return a 64 KiB-aligned new reservation and
     # report a page-rounded region size. A 4 KiB-aligned 65520-byte block loses

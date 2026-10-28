@@ -157,6 +157,114 @@
   },
   {
     "start": "0x00088140",
-    "evidence": "Observed scene-initialization callback at original call 0x00082BBC, returning to 0x00082BC2, vtable 0x0026F4C0 slot +0xCC. Disassembly confirms actor location/region update and calls to original 0x000EF7B0/0x000879A0/0x00087930/0x000879F0. Prepared for the next integrated first-menu-frame test; no new build performed for this entry"
+    "evidence": "Observed scene-initialization callback at original call 0x00082BBC, returning to 0x00082BC2, vtable 0x0026F4C0 slot +0xCC. Disassembly confirms actor location/region update and calls to original 0x000EF7B0/0x000879A0/0x00087930/0x000879F0. Original body recovered and executed during host scene initialization"
+  },
+  {
+    "start": "0x000C7F00",
+    "evidence": "Observed original script native called from dispatcher 0x00032E62 after scene initialization advanced beyond 0x00088140. Original registration pair 0x002C3AA4 identifies AActor::execFastTrace; recover its original body and calling convention."
+  },
+  {
+    "start": "0x00036890",
+    "evidence": "Original UObject string native GreaterEqual_StringString in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x000369C0",
+    "evidence": "Original UObject string native EqualEqual_StringString in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x00036AF0",
+    "evidence": "Original UObject string native NotEqual_StringString in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x00036C20",
+    "evidence": "Original UObject string native ComplementEqual_StringString in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x00036D50",
+    "evidence": "Original UObject string native Len in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x00036F30",
+    "evidence": "Original UObject string native Mid in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x00037E20",
+    "evidence": "Original UObject string native Left in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x00037F50",
+    "evidence": "Original UObject string native Right in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x00037180",
+    "evidence": "Original UObject string native Chr in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x00036310",
+    "evidence": "Original UObject string native At_StringString in registration group 0x002B2594..0x002B25BC. Menu script reached 0x00036310 from 0x0002DFA8 after execMid; recover neighboring original string operations unchanged."
+  },
+  {
+    "start": "0x00036470",
+    "evidence": "Original UObject string native Less_StringString in registration group 0x002B2594..0x002B25BC. Menu script reached 0x00036310 from 0x0002DFA8 after execMid; recover neighboring original string operations unchanged."
+  },
+  {
+    "start": "0x00036630",
+    "evidence": "Original UObject string native Greater_StringString in registration group 0x002B2594..0x002B25BC. Menu script reached 0x00036310 from 0x0002DFA8 after execMid; recover neighboring original string operations unchanged."
+  },
+  {
+    "start": "0x00036760",
+    "evidence": "Original UObject string native LessEqual_StringString in registration group 0x002B2594..0x002B25BC. Menu script reached 0x00036310 from 0x0002DFA8 after execMid; recover neighboring original string operations unchanged."
+  },
+  {
+    "start": "0x000378A0",
+    "evidence": "Original UObject native SaveConfig in registration group 0x002B267C..0x002B26C4. Menu startup reached IsInState at 0x000379F0 from 0x00034F6D; recover related original object/config/state operations unchanged."
+  },
+  {
+    "start": "0x00034E30",
+    "evidence": "Original UObject native DynamicLoadObject in registration group 0x002B267C..0x002B26C4. Menu startup reached IsInState at 0x000379F0 from 0x00034F6D; recover related original object/config/state operations unchanged."
+  },
+  {
+    "start": "0x000379F0",
+    "evidence": "Original UObject native IsInState in registration group 0x002B267C..0x002B26C4. Menu startup reached IsInState at 0x000379F0 from 0x00034F6D; recover related original object/config/state operations unchanged."
+  },
+  {
+    "start": "0x00037310",
+    "evidence": "Original UObject::Warn native at registration 0x002B2644..0x002B2654. Menu startup reached execWarn 0x00037310 via dispatcher return 0x00033446 after diagnostic execution of the original C++ exception handler; initialized GNatives token 0xE7 confirms execWarn."
+  },
+  {
+    "start": "0x00037490",
+    "evidence": "Original UObject::New native at registration 0x002B2644..0x002B2654. Menu startup reached execWarn 0x00037310 via dispatcher return 0x00033446 after diagnostic execution of the original C++ exception handler; initialized GNatives token 0xE7 confirms execWarn."
+  },
+  {
+    "start": "0x000656F0",
+    "evidence": "Original script native observed at indirect dispatcher 0x00032EF2 during menu startup after C++ exception handling. The retained initialized GNatives snapshot places this original callback at native index 0x4CF; disassembly shows original actor-related bytecode decoding. Recover unchanged."
+  },
+  {
+    "start": "0x000C7080",
+    "evidence": "Original AActor::IsAnimating native from animation registration group 0x002C3AC4..0x002C3B14. Menu startup reached execPlayAnim 0x000C5E10 through dispatcher return 0x00032E62. Recover original animation functions unchanged."
+  },
+  {
+    "start": "0x000C5E10",
+    "evidence": "Original AActor::PlayAnim native from animation registration group 0x002C3AC4..0x002C3B14. Menu startup reached execPlayAnim 0x000C5E10 through dispatcher return 0x00032E62. Recover original animation functions unchanged."
+  },
+  {
+    "start": "0x000C5CF0",
+    "evidence": "Original AActor::GetBoneCoords native from animation registration group 0x002C3AC4..0x002C3B14. Menu startup reached execPlayAnim 0x000C5E10 through dispatcher return 0x00032E62. Recover original animation functions unchanged."
+  },
+  {
+    "start": "0x000C8C70",
+    "evidence": "Original AActor::SetBoneScale native from animation registration group 0x002C3AC4..0x002C3B14. Menu startup reached execPlayAnim 0x000C5E10 through dispatcher return 0x00032E62. Recover original animation functions unchanged."
+  },
+  {
+    "start": "0x000638D0",
+    "evidence": "Original AActor::InterpolateRotatorValue native from character/animation registration group 0x002C3C74..0x002C3C94. Original Echelon character startup reached execInterpolateRotatorValue 0x000638D0 from 0x00034F6D. Recover original functions unchanged."
+  },
+  {
+    "start": "0x00063C90",
+    "evidence": "Original AActor::SetIKFade native from character/animation registration group 0x002C3C74..0x002C3C94. Original Echelon character startup reached execInterpolateRotatorValue 0x000638D0 from 0x00034F6D. Recover original functions unchanged."
+  },
+  {
+    "start": "0x00067E90",
+    "evidence": "Original AActor::GetSoundPosition native from character/animation registration group 0x002C3C74..0x002C3C94. Original Echelon character startup reached execInterpolateRotatorValue 0x000638D0 from 0x00034F6D. Recover original functions unchanged."
   }
 ]

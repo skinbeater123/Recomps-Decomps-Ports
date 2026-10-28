@@ -28,6 +28,8 @@ def finish_generation():
     # Upstream emits silent ret-shaped bodies for unresolved direct calls.
     # A bring-up artifact must report them at the actual guest address instead.
     staging = PROJECT / "private" / "generated-stage"
+    from prepare_exceptions import prepare
+    prepare(staging)
     stubs = staging / "recomp_stubs_unresolved.c"
     text = stubs.read_text()
     text = re.sub(r'void (sub_([0-9A-Fa-f]+))\(void\) \{[^\n]*\}',
