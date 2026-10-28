@@ -28,7 +28,8 @@ list(APPEND KERNEL_SOURCES
   "${ROOT}/private/host/kernel_bridge.c"
   "${ROOT}/private/host/nv2a_pb_exec.c"
   "${ROOT}/private/host/xbox_memory_layout.c"
-  "${ROOT}/src/gpu_commands.c")
+  "${ROOT}/src/gpu_commands.c"
+  "${ROOT}/src/d3d_sync.c")
 set_property(TARGET xbox_kernel PROPERTY SOURCES "${KERNEL_SOURCES}")
 if(NINTENDO_SWITCH)
 file(SHA256 "${NVK_SDK}/lib/libvulkan.a" SC1_DRIVER_SHA)

@@ -198,6 +198,57 @@ static int sc1_vk_instance(VkInstance instance) {
     (OUT / "nv2a_pb_exec.c").write_text(text, encoding="utf-8")
     text = (UPSTREAM / "xboxrecomp/src/kernel/kernel_bridge.c").read_text(encoding="utf-8")
     text = '#include "../../src/guest_exceptions.h"\n' + text
+    # The diagnostic supervisor restarts the same image after an Xbox quick
+    # reboot, carrying the original 4 KiB launch page between processes.
+    text = replace_once(text, '        if (cmdline && *cmdline) {', '''#ifdef _WIN32
+        const char *handoff = getenv("SC1_LAUNCH_HANDOFF");
+        FILE *launch_file = handoff ? fopen(handoff, "rb") : NULL;
+        if (launch_file) {
+            uint8_t launch_page[4096];
+            size_t n = fread(launch_page, 1, sizeof launch_page, launch_file);
+            int extra = fgetc(launch_file);
+            fclose(launch_file);
+            if (n != sizeof launch_page || extra != EOF || remove(handoff) != 0) {
+                fprintf(stderr, "[SC1] invalid launch handoff\\n");
+                exit(1);
+            }
+            uint32_t page = xbox_HeapAlloc(4096, 4096);
+            if (!page) { fprintf(stderr, "[SC1] launch page allocation failed\\n"); exit(1); }
+            for (size_t i = 0; i < sizeof launch_page; ++i)
+                BRIDGE_MEM8(page + (uint32_t)i) = launch_page[i];
+            BRIDGE_MEM32(XBOX_KERNEL_DATA_BASE + KDATA_LAUNCH_DATA_PAGE) = page;
+            fprintf(stderr, "[SC1] restored original launch page at %08X\\n", page);
+        } else
+#endif
+        if (cmdline && *cmdline) {''')
+    text = replace_once(text, '    xbox_HalReturnToFirmware(routine);', '''#ifdef _WIN32
+    {
+        const char *handoff = getenv("SC1_LAUNCH_HANDOFF");
+        uint32_t page = BRIDGE_MEM32(XBOX_KERNEL_DATA_BASE + KDATA_LAUNCH_DATA_PAGE);
+        if (handoff && routine == 2 && page && BRIDGE_MEM32(page) == 0) {
+            char path[64];
+            size_t i;
+            for (i = 0; i + 1 < sizeof path && BRIDGE_MEM8(page + 8 + i); ++i)
+                path[i] = (char)BRIDGE_MEM8(page + 8 + i);
+            path[i] = 0;
+            if (_stricmp(path, "\\\\Device\\\\CdRom0;default.xbe") == 0) {
+                uint8_t launch_page[4096];
+                for (i = 0; i < sizeof launch_page; ++i)
+                    launch_page[i] = BRIDGE_MEM8(page + (uint32_t)i);
+                FILE *f = fopen(handoff, "wb");
+                size_t written = f ? fwrite(launch_page, 1, sizeof launch_page, f) : 0;
+                int close_result = f ? fclose(f) : -1;
+                if (written != sizeof launch_page || close_result != 0) {
+                    remove(handoff);
+                    fprintf(stderr, "[SC1] launch handoff write failed\\n");
+                    exit(1);
+                }
+                fprintf(stderr, "[SC1] saved original launch page for same-image reboot\\n");
+            }
+        }
+    }
+#endif
+    xbox_HalReturnToFirmware(routine);''')
     text = replace_once(text, 'static SRWLOCK s_guest_threads_lock = SRWLOCK_INIT;',
                         'static SRWLOCK s_guest_threads_lock = SRWLOCK_INIT;\n#include "../../src/thread_objects.h"')
     text = replace_once(text, '''    ReleaseSRWLockShared(&s_guest_threads_lock);

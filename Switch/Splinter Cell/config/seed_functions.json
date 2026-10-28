@@ -294,5 +294,33 @@
   {
     "start": "0x00080874",
     "evidence": "Observed original branch arm from actor function 0x00080720 at branch 0x00080794 during execLockRootMotion. The disassembler split the original control flow at 0x00080857 and left this direct target unresolved; original bytes at 0x00080874 continue the existing guest stack frame and eventually execute the original epilogue. Recover the original branch unchanged."
+  },
+  {
+    "start": "0x00061F80",
+    "evidence": "Original vtable 0x0026BC58 slot +0x28 target reached from 0x0003862E during training asset deserialization after restoring the guest quick-reboot launch page. Recover the original body unchanged."
+  },
+  {
+    "start": "0x00031520",
+    "evidence": "Original indirect target reached from 0x00032E62 during training deserialization after original 0x00061F80 executed. Identified in vtable 0x002B27F8, slot +0x2B0; recover original body unchanged."
+  },
+  {
+    "start": "0x000C6580",
+    "evidence": "Original native script callback reached at guest 0x00034F6D after accepting Start on the CIA training briefing. Recover the original function and calling convention unchanged."
+  },
+  {
+    "start": "0x00138060",
+    "evidence": "Original indirect callback reached at 0x00032F22 during training script startup after original callback 0x000C6580. Identified in vtable 0x002CA080, slot +0xF4; recover unchanged."
+  },
+  {
+    "start": "0x000C66E0",
+    "evidence": "Original native script callback reached from 0x00034F6D after Start at the training briefing, following original callback 0x00138060. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00137070",
+    "evidence": "Original indirect script target reached from 0x00032EF2 during CIA training startup after callback 0x000C66E0. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00064520",
+    "evidence": "Original indirect target reached from 0x00032F22 in training script startup after original callback 0x00137070. Recover original body and calling convention unchanged."
   }
 ]

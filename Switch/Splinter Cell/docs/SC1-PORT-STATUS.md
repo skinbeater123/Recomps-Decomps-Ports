@@ -210,6 +210,28 @@ software diagnostic renderer needed the observed texture/diffuse combiner and
 additive and color-multiply blend factors; unsupported combinations remain
 outside that narrow correction. The resulting frames still show visual artifacts.
 
+The host saved and selected an original profile, opened the training Bink and
+displayed the original training loading screen. One run reached an Xbox quick
+reboot into the same XBE with training launch data, which the current runtime
+treated as an exit. A later run stalled earlier at `0x001F007B`, waiting for a
+pending display flip after an early movie skip. A Windows diagnostic process
+handoff then preserved the original 4 KiB launch page across a fresh process;
+the restarted guest loaded original training assets, passed recovered targets
+`0x00061F80` and `0x00031520`, and displayed the CIA Training Farm briefing.
+After Start, original callbacks `0x000C6580`, `0x00138060`, `0x000C66E0` and
+`0x00137070` executed, and the run stopped at missing indirect callback
+`0x00064520`, called from `0x00032F22`. Interactive
+training is not yet verified. SC1 now reports original flip retirements to the
+existing runtime stall mechanism and coordinates PGRAPH and vblank handlers at
+dispatch level. One short direct training run reached the next callback without
+a stall timeout; the earlier timing-sensitive flip wait needs sustained validation.
+The diagnostic framebuffer intermittently remained black at the briefing even
+while original input polling responded to Start.
+Buffy's existing implementation preserves the same launch page and coordinates
+old threads, guest memory and devices during an in-process reboot. Its Eden logs
+show that reboot restarting Buffy; SC1's Switch integration remains to be adapted
+and verified.
+
 The milestone NRO SHA-256 is
 `38b8b9181ec670f95f4946eb43965afc653f4ab65c3f3c236c2a529625aa1f2a`;
 its matching ELF SHA-256 is
