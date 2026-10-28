@@ -219,9 +219,9 @@ handoff then preserved the original 4 KiB launch page across a fresh process;
 the restarted guest loaded original training assets, passed recovered targets
 `0x00061F80` and `0x00031520`, and displayed the CIA Training Farm briefing.
 After Start, original callbacks `0x000C6580`, `0x00138060`, `0x000C66E0` and
-`0x00137070`, `0x00064520`, `0x000660B0`, `0x00103070` and `0x00101200`
-executed. The latest run stopped at missing indirect property callback
-`0x00103FE0`, called from `0x000F96E1`. Its recovery is prepared but has not
+`0x00137070`, `0x00064520`, `0x000660B0`, `0x00103070`, `0x00101200` and
+`0x00103FE0`, `0x00103330` and `0x00076F70` executed. The latest run stopped at
+indirect callback `0x0014CB70`, called from `0x00032F22`. Its recovery is prepared but has not
 yet been executed. Interactive
 training is not yet verified. SC1 now reports original flip retirements to the
 existing runtime stall mechanism and coordinates PGRAPH and vblank handlers at
