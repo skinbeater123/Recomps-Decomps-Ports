@@ -8,6 +8,8 @@ python "%~dp0generate.py" --prepare-only
 if errorlevel 1 exit /b 1
 python "%~dp0prepare_runtime.py"
 if errorlevel 1 exit /b 1
+python "%~dp0prepare_actor_trace.py"
+if errorlevel 1 exit /b 1
 "C:\Programming\CMake\bin\cmake.exe" -S "%~dp0.." -B "%~dp0..\build\host" -G Ninja -DCMAKE_BUILD_TYPE=Release "-DCMAKE_C_COMPILER=%CLANG%" "-DCMAKE_CXX_COMPILER=%CLANG%"
 if errorlevel 1 exit /b 1
 "C:\Programming\CMake\bin\cmake.exe" --build "%~dp0..\build\host" --target sc1 --parallel 4

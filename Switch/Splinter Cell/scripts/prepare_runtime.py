@@ -132,11 +132,18 @@ def main():
 #define VK_NO_PROTOTYPES
 #include <vulkan/vulkan.h>
 #include <stdio.h>
+#include <stdlib.h>
 extern VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vk_icdGetInstanceProcAddr(VkInstance, const char *);
 static PFN_vkCreateInstance vkCreateInstance;
 '''
     header += ''.join(f'static PFN_{name} {name};\n' for name in functions)
     header += '''static int sc1_vk_global(void) {
+#ifdef __SWITCH__
+    /* NVK classifies Tegra X1 as non-conformant. Explicitly select the
+     * documented compatibility mode unless the user supplied a value. */
+    if (!getenv("NVK_I_WANT_A_BROKEN_VULKAN_DRIVER"))
+        setenv("NVK_I_WANT_A_BROKEN_VULKAN_DRIVER", "1", 0);
+#endif
     vkCreateInstance = (PFN_vkCreateInstance)vk_icdGetInstanceProcAddr(VK_NULL_HANDLE, "vkCreateInstance");
     return vkCreateInstance != NULL;
 }
@@ -183,6 +190,104 @@ static int sc1_vk_instance(VkInstance instance) {
     (OUT / "xbox_memory_layout.c").write_text(text, encoding="utf-8")
     text = (UPSTREAM / "xboxrecomp/src/kernel/nv2a_pb_exec.c").read_text(encoding="utf-8")
     text = '#include "../../src/software_combiner.h"\n#include "../../src/software_blend.h"\n' + text
+    text = '#include "../../src/software_depth.h"\n' + text
+    # Experimental software-only Z24S8 support for the observed pitched scene.
+    # Restrict writes to the mapped contiguous guest RAM window.
+    text = replace_once(text, '    if (!(param & NV097_CLEAR_COLOR_MASK))', """#if defined(_WIN32)
+    if (getenv(\"SC1_SOFTWARE_DEPTH\") && (param & 3u) && ((s_gpu.format >> 4) & 15u) == 2u) {
+        uint32_t pitch = s_reg[0x20C/4] >> 16, base = s_gpu.rs.zeta_va;
+        uint32_t x0 = s_gpu.clip_x, y0 = s_gpu.clip_y;
+        uint32_t x1 = x0 + s_gpu.clip_w, y1 = y0 + s_gpu.clip_h;
+        uint32_t hz = s_reg[0x1D98/4], vt = s_reg[0x1D9C/4];
+        uint32_t rx0 = hz & 0xffffu, rx1 = (hz >> 16) + 1u;
+        uint32_t ry0 = vt & 0xffffu, ry1 = (vt >> 16) + 1u;
+        if (rx1 > rx0 && ry1 > ry0) {
+            if (x0 < rx0) x0 = rx0; if (y0 < ry0) y0 = ry0;
+            if (x1 > rx1) x1 = rx1; if (y1 > ry1) y1 = ry1;
+        }
+        if (x1 > x0 && y1 > y0 && pitch >= x1 * 4u && base >= 0x80000000u &&
+            (uint64_t)base + (uint64_t)pitch * y1 <= 0x84000000ull &&
+            !surface_write_refused(base, pitch * y1, \"clear depth\")) {
+            for (uint32_t yy = y0; yy < y1; ++yy) {
+                uint32_t *row = (uint32_t *)(mem + base + (size_t)yy * pitch);
+                for (uint32_t xx = x0; xx < x1; ++xx)
+                    row[xx] = sc1_z24s8_clear(row[xx], s_gpu.zstencil_clear, param);
+            }
+        }
+    }
+#endif
+    if (!(param & NV097_CLEAR_COLOR_MASK))""")
+    text = replace_once(text, '    if (bpp != 4 && bpp != 2)\n        return;\n\n    area =', """#if defined(_WIN32)
+    static int sc1_depth_on = -1;
+    if (sc1_depth_on < 0) sc1_depth_on = getenv(\"SC1_SOFTWARE_DEPTH\") != NULL;
+#endif
+    if (bpp != 4 && bpp != 2)
+        return;
+
+    area =""")
+    text = replace_once(text, '            if (textured) {\n                /* Barycentric, straight', """#if defined(_WIN32)
+            if (sc1_depth_on && s_gpu.rs.depth_test_enable &&
+                ((s_gpu.format >> 4) & 15u) == 2u) {
+                uint32_t pitch = s_reg[0x20C/4] >> 16, base = s_gpu.rs.zeta_va;
+                if (base >= 0x80000000u && pitch >= (uint32_t)(x + 1) * 4u &&
+                    (uint64_t)base + (uint64_t)pitch * ((uint32_t)y + 1u) <= 0x84000000ull &&
+                    !surface_write_refused(base, pitch * ((uint32_t)y + 1u), \"write depth\")) {
+                    float zf = (w1 * a[2] + w2 * b[2] + w0 * c[2]) / area;
+                    if (!(zf >= 0.0f)) zf = 0.0f;
+                    if (zf > 16777215.0f) zf = 16777215.0f;
+                    uint32_t *z = (uint32_t *)(mem + base + (size_t)y * pitch) + x;
+                    if (!sc1_z24s8_test_write(z, (uint32_t)(zf + 0.5f), s_gpu.rs.depth_func, s_gpu.rs.depth_write)) continue;
+                }
+            }
+#endif
+            if (textured) {
+                /* Barycentric, straight""")
+    text = replace_once(text, '            float a[2], b[2], c[2];', '            float a[4] = {0}, b[4] = {0}, c[4] = {0};')
+    text = '#include "../../src/software_texcoord.h"\n' + text
+    text = replace_once(text, '    area = (b[0] - a[0]) * (c[1] - a[1])', """#if defined(_WIN32)
+    static int sc1_wrap_on = -1;
+    if (sc1_wrap_on < 0) sc1_wrap_on = getenv(\"SC1_SOFTWARE_UV_WRAP\") != NULL;
+#endif
+    area = (b[0] - a[0]) * (c[1] - a[1])""")
+    text = replace_once(text, """                if (su < 0.0f) su = 0.0f;
+                if (sv < 0.0f) sv = 0.0f;
+                if (sample_texture(&s_gpu.tex, (uint32_t)su, (uint32_t)sv, &texel)) {""", """                uint32_t iu, iv;
+#if defined(_WIN32)
+                if (sc1_wrap_on) {
+                    iu = sc1_texcoord(su, s_gpu.tex.width, s_gpu.tex.addr_u);
+                    iv = sc1_texcoord(sv, s_gpu.tex.height, s_gpu.tex.addr_v);
+                } else
+#endif
+                {
+                    if (su < 0.0f) su = 0.0f;
+                    if (sv < 0.0f) sv = 0.0f;
+                    iu = (uint32_t)su; iv = (uint32_t)sv;
+                }
+                if (sample_texture(&s_gpu.tex, iu, iv, &texel)) {""")
+    # Bounded evidence for the actual depth format, pitch and clear flags.
+    text = replace_once(text, 'static void clear_surface(uint32_t param)\n{', """static void clear_surface(uint32_t param)
+{
+#if defined(_WIN32)
+    static int sc1_depth_trace = -1;
+    if (sc1_depth_trace < 0) sc1_depth_trace = getenv(\"SC1_TRACE_DEPTH_STATE\") != NULL;
+    if (sc1_depth_trace) {
+        static unsigned count;
+        if (count++ < 40)
+            fprintf(stderr, \"[DEPTH] clear flags=%08X format=%08X pitch=%08X zeta=%08X value=%08X clip=%u,%u %ux%u\\n\", param, s_gpu.format, s_reg[0x20C/4], s_gpu.rs.zeta_va, s_gpu.zstencil_clear, s_gpu.clip_x, s_gpu.clip_y, s_gpu.clip_w, s_gpu.clip_h);
+    }
+#endif""")
+    text = replace_once(text, '    int textured = uv && s_gpu.tex.valid;', """#if defined(_WIN32)
+    static int sc1_depth_trace = -1;
+    if (sc1_depth_trace < 0) sc1_depth_trace = getenv(\"SC1_TRACE_DEPTH_STATE\") != NULL;
+    if (sc1_depth_trace) {
+        static uint32_t last_format, last_pitch, last_zeta, last_func, last_enable;
+        if (s_gpu.format != last_format || s_reg[0x20C/4] != last_pitch || s_gpu.rs.zeta_va != last_zeta || s_gpu.rs.depth_func != last_func || s_gpu.rs.depth_test_enable != last_enable) {
+            last_format = s_gpu.format; last_pitch = s_reg[0x20C/4]; last_zeta = s_gpu.rs.zeta_va; last_func = s_gpu.rs.depth_func; last_enable = s_gpu.rs.depth_test_enable;
+            fprintf(stderr, \"[DEPTH] draw format=%08X pitch=%08X zeta=%08X enable=%u func=%X write=%u\\n\", last_format, last_pitch, last_zeta, last_enable, last_func, s_gpu.rs.depth_write);
+        }
+    }
+#endif
+    int textured = uv && s_gpu.tex.valid;""")
     # Compare the guest CRTC scanout with the last render target; the latter
     # may be a small offscreen texture rather than the displayed frame.
     text = replace_once(text, '    dump_surface_bmp();\n\n    /* Drawn and skipped separately:',

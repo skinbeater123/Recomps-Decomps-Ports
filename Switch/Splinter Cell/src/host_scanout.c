@@ -37,6 +37,7 @@ void sc1_dump_scanout(void)
     snprintf(path, sizeof(path), "%s%03u.bmp", prefix, sequence++);
     if (!(f = fopen(path, "wb"))) return;
     last_capture = now;
+    { extern void sc1_trace_actor_snapshot(void); sc1_trace_actor_snapshot(); }
     header[0] = 'B'; header[1] = 'M'; header[10] = 54; header[14] = 40;
     memcpy(header + 2, &file_size, 4); memcpy(header + 18, &width, 4);
     memcpy(header + 22, &height, 4); header[26] = 1; header[28] = 24;

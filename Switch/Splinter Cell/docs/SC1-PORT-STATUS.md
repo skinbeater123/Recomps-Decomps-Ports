@@ -259,6 +259,31 @@ A separate successful Buffy Eden guest log identifies EGL/OpenGL, not SC1's
 static NVK driver; the comparison does not establish why SC1 enumeration failed.
 No Eden menu rendering or physical Switch execution of this NRO is demonstrated.
 
+A focused Eden comparison identified a guest NVK compatibility requirement:
+explicit `NVK_I_WANT_A_BROKEN_VULKAN_DRIVER=1` made the retained NRO enumerate
+Tegra X1 and create an NVK swapchain. Without it, enumeration reported no device.
+Both Eden CLI and GUI then terminated with access violation `0xC0000005` in
+the same emulator core instruction, reading address `0x28` with a null internal
+object (CLI offset `0x2270D5`, GUI `0x605745`); disabling optional instancing did
+not prevent the crash. Guest-rendered frames have not been confirmed. The SC1
+Switch initialization now enables the NVK setting unless the user supplies it.
+
+The new consolidated NRO SHA-256 is
+`e7082eb8b81301ec74576181292a8fc788b84382afffccf453d39520886f17ed`;
+its matching ELF SHA-256 is
+`233a6f82bd8184fa1e84cc507783ce28cce97e90afc16eeed87ccb28ac08736b`.
+Both are retained in `private/artifacts/sc1-e7082eb8b813`. The NRO has not yet
+been run: the existing Eden session belongs to Buffy and must not be disturbed.
+The previous milestone is retained independently.
+
+Opt-in Windows experiments for observed Z24S8 depth and negative wrapped texture
+coordinates pass focused arithmetic tests and each visibly changes the scanout,
+but neither alone nor together produces recognisable training graphics. They are
+not evidence of accurate rendering and are disabled by default. An original
+`AActor::execMove` probe recorded six actors during initial loading, with no
+further calls during stick input. The sampled actor identities are not established;
+movement and camera response remain unverified.
+
 The correct Switch deployment
 storage is accessed at the owner-specified network endpoint. The original
 extracted files are staged there with ISO excluded. All 680 file sizes and nine
