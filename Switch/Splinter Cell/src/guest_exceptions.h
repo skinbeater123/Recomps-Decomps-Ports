@@ -14,6 +14,7 @@ typedef struct Sc1EhFrame {
     int gil_depth, gil_atomic, dispatch_depth;
 } Sc1EhFrame;
 
+void sc1_eh_reset(void);
 void sc1_eh_enter(Sc1EhFrame *, uint32_t, uint32_t, const uint32_t *, size_t);
 void sc1_eh_leave(Sc1EhFrame *);
 void sc1_eh_dispatch_enter(void);

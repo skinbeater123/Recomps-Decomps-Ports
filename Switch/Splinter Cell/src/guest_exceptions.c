@@ -51,3 +51,5 @@ int sc1_eh_resume(uint32_t target, uint32_t esp)
     }
     return 0;
 }
+
+void sc1_eh_reset(void) { sc1_eh_top = NULL; sc1_eh_dispatch_depth = 0; sc1_eh_landing_target = 0; }

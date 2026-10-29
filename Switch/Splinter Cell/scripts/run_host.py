@@ -46,10 +46,12 @@ with log.open("w", encoding="utf-8") as output:
     deadline = time.monotonic() + options.seconds
     timed_out = False
     restarts = 0
+    process_ids = []
     while True:
         child = subprocess.Popen([str(ROOT / "build/host/sc1.exe")], cwd=WORK,
             env=environment, stdout=output, stderr=subprocess.STDOUT,
             creationflags=subprocess.CREATE_NO_WINDOW)
+        process_ids.append(child.pid)
         try:
             code = child.wait(timeout=max(0, deadline - time.monotonic()))
         except subprocess.TimeoutExpired:
@@ -64,7 +66,11 @@ with log.open("w", encoding="utf-8") as output:
             raise RuntimeError("More than five guest title relaunches in one run")
         output.write(f"\n[SC1] supervising guest title relaunch {restarts}\n")
         output.flush()
-result = {"exit_code": code, "timeout": timed_out, "relaunches": restarts, "limit_seconds": options.seconds, "log": str(log)}
+result = {"exit_code": code, "timeout": timed_out, "relaunches": restarts,
+          "process_ids": process_ids,
+          "internal_reboots": log.read_text(errors="replace").count("[REBOOT] guest reset ("),
+          "executable_sha256": hashlib.sha256((ROOT / "build/host/sc1.exe").read_bytes()).hexdigest(),
+          "limit_seconds": options.seconds, "log": str(log)}
 (ROOT / "private/host-run.json").write_text(json.dumps(result, indent=2))
 print(json.dumps(result, indent=2))
 if code and not timed_out:

@@ -20,6 +20,7 @@ def replace_once(text, before, after):
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     text = (UPSTREAM / "src/main.c").read_text(encoding="utf-8")
+    text = '#include "build_identity.h"\n' + text
     text = replace_once(text, "0x001D2807u", generate.LOCK["executable"]["entry"] + "u")
     text = text.replace("sdmc:/switch/b3x", "sdmc:/switch/splintercell")
     text = text.replace("Burnout 3: Takedown", "Splinter Cell (2002)")
@@ -87,6 +88,7 @@ def main():
     setenv("RECOMP_VK_ANISO", "1", 0);
     setenv("RECOMP_VK_LOD_BIAS", "0", 0);
 #endif
+    fprintf(stderr, "[SC1] build %s revision %s\\n", SC1_BUILD_ID, SC1_BUILD_REVISION);
     game_dir = getenv("NFSU2_GAME_DIR");''')
     # Game-created guest threads are still alive when startup returns. Terminate
     # the Horizon process instead of unloading memory beneath those threads.
@@ -223,6 +225,7 @@ int sc1_watch_address(uint32_t va) { return watch_arm(va); }
                 val &= ~(2u << (byte * 8u));
         }
     }''')
+    text += '\n#include "../../src/reboot/memory_checkpoint.inc"\n'
     (OUT / "xbox_memory_layout.c").write_text(text, encoding="utf-8")
     text = (UPSTREAM / "xboxrecomp/src/kernel/nv2a_pb_exec.c").read_text(encoding="utf-8")
     text = '#include "../../src/software_combiner.h"\n#include "../../src/software_blend.h"\n' + text
@@ -536,6 +539,8 @@ void sc1_eh_restore_gil(int depth, int atomic) {
     (OUT / "kernel_bridge.c").write_text(text, encoding="utf-8")
     for name in ("LICENSE", "xboxrecomp/NOTICE"):
         (OUT / Path(name).name).write_text((UPSTREAM / name).read_text(encoding="utf-8"), encoding="utf-8")
+    from prepare_soft_reboot import prepare
+    prepare()
     print(f"Prepared pinned Switch host overlay: {OUT}")
 
 

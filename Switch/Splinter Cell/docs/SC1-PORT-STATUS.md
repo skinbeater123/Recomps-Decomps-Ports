@@ -1,4 +1,4 @@
-# SC1 port status — 28 October 2026
+# SC1 port status — 29 October 2026
 
 **Original menu navigation and saving have been demonstrated on Switch.
 Training-scene execution is demonstrated on Windows, with severe diagnostic
@@ -13,16 +13,26 @@ stuttering audio; loading is slow. Download Levels reportedly crashes, but the
 supplied logs contain no diagnostic for that separate failure. Start Game ends
 at original `HalReturnToFirmware(2)`, the same-image Xbox relaunch request.
 The tested runtime calls normal `exit`, which Buffy's earlier console evidence
-identifies as unsafe while guest threads still run. A source correction now
-saves the original 4096-byte launch page and exits with `svcExitProcess`; the
-next manual NRO launch consumes that page. Automatic in-process reboot remains
-unimplemented. This correction still requires console testing. The new `-O1` candidate is
+identifies as unsafe while guest threads still run. Buffy's internal reboot
+lifecycle has now been adapted to SC1: retain the original 4096-byte launch
+page, retire the old guest threads, restore entry-point memory and allocators,
+reset runtime/device state and reenter the original Xbox entry point in the
+same process. Two Windows menu-to-training runs retired all four old threads
+(80 ms and 30 ms, with none left parked), closed 32 old handles and reached
+the authentic CIA Training Farm briefing without a supervisor relaunch.
+The second run accepted Start and resumed original training 3D submissions;
+its displayed scene still has the established software-rendering corruption.
+The adapted lifecycle still requires console testing. The earlier manual-restart `-O1` candidate is
 retained at `private/artifacts/sc1-ed8ed0ef65b2`, with NRO SHA-256
 `ed8ed0ef65b2110e8863e27c32e024efa135099ded6e990ded65c944c629e3ef`
 and matching ELF SHA-256
 `264623cc97f329944e2639b810d74efb173a38867197ad21b9b02bdc5d480d23`.
 Its manifest also records the generated-source checksums. The shared launch-page
 restore path was rebuilt and replayed successfully on the Windows host.
+
+Builds now read `VERSION` and embed a UTC timestamp in the hbmenu title, with
+the full version/timestamp/revision in logs and NRO/ELF filenames. The build
+script retains matching artifacts and SHA-256 manifests under `private/artifacts`.
 
 The supplied movie interval records about 4.9 FPS, game-thread load around 92%
 of a core and no output-device underruns. It does not establish a single cause
@@ -269,8 +279,9 @@ The diagnostic framebuffer intermittently remained black at the briefing even
 while original input polling responded to Start.
 Buffy's existing implementation preserves the same launch page and coordinates
 old threads, guest memory and devices during an in-process reboot. Its Eden logs
-show that reboot restarting Buffy; SC1's Switch integration remains to be adapted
-and verified.
+show that reboot restarting Buffy. SC1 now uses that lifecycle with Windows
+OHCI checkpoint exclusions, bounded cancellable guest waits, SC1 thread-object
+cleanup and exception-chain reset. Its native Switch verification remains open.
 
 The milestone NRO SHA-256 is
 `38b8b9181ec670f95f4946eb43965afc653f4ab65c3f3c236c2a529625aa1f2a`;

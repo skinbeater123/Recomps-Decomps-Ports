@@ -50,6 +50,13 @@ int main(void) {
     sc1_eh_dispatch_enter();
     assert(!sc1_eh_resume(0x100, 0x0fc0)); /* no stale native frame */
     sc1_eh_dispatch_leave();
+    sc1_eh_enter(&outer, 0x1000, 0x0fc0, outer_labels, 2);
+    sc1_eh_dispatch_enter();
+    sc1_eh_reset(); /* reboot abandons the old native exception chain */
+    assert(sc1_eh_target() == 0);
+    sc1_eh_dispatch_enter();
+    assert(!sc1_eh_resume(0x100, 0x0fc0));
+    sc1_eh_dispatch_leave();
     return 0;
 }
 '''
