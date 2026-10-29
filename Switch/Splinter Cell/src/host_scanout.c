@@ -51,3 +51,24 @@ void sc1_dump_scanout(void)
     fclose(f);
     fprintf(stderr, "[SC1] scanout %08X pitch %u %ux%u: %s\n", physical, pitch, width, height, path);
 }
+
+/* Read a diagnostic-supplied guest address after the target object exists. */
+void sc1_poll_watch(void)
+{
+    static int done;
+    static ULONGLONG last_poll;
+    const char *path = getenv("SC1_WATCH_FILE");
+    ULONGLONG now;
+    FILE *f;
+    unsigned va;
+    extern int sc1_watch_address(uint32_t);
+    if (!path || done) return;
+    now = GetTickCount64();
+    if (last_poll && now - last_poll < 500) return;
+    last_poll = now;
+    if (!(f = fopen(path, "r"))) return;
+    if (fscanf(f, "%x", &va) == 1 && va) {
+        if (sc1_watch_address(va)) done = 1;
+    }
+    fclose(f);
+}

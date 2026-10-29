@@ -78,6 +78,10 @@ def main():
     if (!getenv("RECOMP_VK_ANISO")) _putenv("RECOMP_VK_ANISO=1");
     if (!getenv("RECOMP_VK_LOD_BIAS")) _putenv("RECOMP_VK_LOD_BIAS=0");
 #else
+#ifdef __SWITCH__
+    setenv("SC1_LAUNCH_HANDOFF", "sdmc:/switch/splintercell/save/launch-page.bin", 0);
+    setenv("RECOMP_GIL_EAGER", "1", 0);
+#endif
     setenv("RECOMP_WIDESCREEN", "0", 0);
     setenv("RECOMP_VK_FXAA", "0", 0);
     setenv("RECOMP_VK_ANISO", "1", 0);
@@ -173,7 +177,39 @@ static int sc1_vk_instance(VkInstance instance) {
         return 0;
     }""")
     (OUT / "nv2a_vk.c").write_text(text, encoding="utf-8")
+    # Observe changed gamepad reports at the OHCI guest transfer boundary.
+    text = (UPSTREAM / "xboxrecomp/src/usb/ohci.c").read_text(encoding="utf-8")
+    text = replace_once(text, """            if (n > 0 && guest_ptr(cbp, (uint32_t)n))
+                memcpy(guest_ptr(cbp, (uint32_t)n), rep, (size_t)n);""", """            if (n > 0 && guest_ptr(cbp, (uint32_t)n)) {
+                memcpy(guest_ptr(cbp, (uint32_t)n), rep, (size_t)n);
+#if defined(_WIN32)
+                static int trace = -1;
+                static int last_ly = -32768;
+                if (trace < 0) trace = getenv(\"SC1_TRACE_GUEST_PAD\") != NULL;
+                if (trace && n >= 20) {
+                    int ly = (int16_t)((unsigned)rep[14] | ((unsigned)rep[15] << 8));
+                    if (ly != last_ly) {
+                        last_ly = ly;
+                        fprintf(stderr, \"[SC1-PAD] td=%08X buffer=%08X bytes=%d left_y=%d\\n\", td, cbp, n, ly);
+                    }
+                }
+#endif
+            }""")
+    (OUT / "ohci.c").write_text(text, encoding="utf-8")
     text = (UPSTREAM / "xboxrecomp/src/kernel/xbox_memory_layout.c").read_text(encoding="utf-8")
+    # Record the host instruction that performed the watched write; symbols
+    # map it back to the original lifted function without changing guest code.
+    text = replace_once(text, 'static RECOMP_TLS int s_watch_stepping;',
+        'static RECOMP_TLS int s_watch_stepping;\nstatic RECOMP_TLS uintptr_t sc1_watch_host_pc;')
+    text = replace_once(text, '    g_watch_last = now;\n\n    /* Return addresses',
+        '    g_watch_last = now;\n#ifdef _WIN32\n    fprintf(stderr, \"[SC1-WATCH] host_rva=%llX\\n\", (unsigned long long)(sc1_watch_host_pc - (uintptr_t)GetModuleHandleW(NULL)));\n#endif\n\n    /* Return addresses')
+    text = replace_once(text, '        uintptr_t fault = ep->ExceptionRecord->ExceptionInformation[1];\n\n        if (fault >= (uintptr_t)g_watch_page',
+        '        uintptr_t fault = ep->ExceptionRecord->ExceptionInformation[1];\n        sc1_watch_host_pc = (uintptr_t)ep->ExceptionRecord->ExceptionAddress;\n\n        if (fault >= (uintptr_t)g_watch_page')
+    # Arm the existing Windows write watch after a diagnostic identifies an object.
+    text = replace_once(text, 'static int watch_arm(uint32_t va);', """static int watch_arm(uint32_t va);
+#if defined(_WIN32)
+int sc1_watch_address(uint32_t va) { return watch_arm(va); }
+#endif""")
     text = replace_once(text, '''void xbox_mmio_write(uint32_t va, uint32_t val, unsigned size)
 {''', '''void xbox_mmio_write(uint32_t va, uint32_t val, unsigned size)
 {
@@ -293,7 +329,7 @@ static int sc1_vk_instance(VkInstance instance) {
     text = replace_once(text, '    dump_surface_bmp();\n\n    /* Drawn and skipped separately:',
         '    dump_surface_bmp();\n#if defined(_WIN32)\n    extern void sc1_dump_scanout(void);\n    sc1_dump_scanout();\n#endif\n\n    /* Drawn and skipped separately:')
     text = replace_once(text, '        xbox_Nv2aFrameCounterFlip();',
-        '        xbox_Nv2aFrameCounterFlip();\n#if defined(_WIN32)\n        extern void sc1_dump_scanout(void);\n        sc1_dump_scanout();\n#endif')
+        '        xbox_Nv2aFrameCounterFlip();\n#if defined(_WIN32)\n        extern void sc1_dump_scanout(void);\n        extern void sc1_poll_watch(void);\n        sc1_dump_scanout();\n        sc1_poll_watch();\n#endif')
     text = replace_once(text, '    int textured = uv && s_gpu.tex.valid;', '''    int textured = uv && s_gpu.tex.valid;
     int menu_combiner = sc1_menu_combiner_matches(s_reg[0x1E60/4], s_reg[0x0AC0/4],
         s_reg[0x1E40/4], s_reg[0x0260/4], s_reg[0x0AA0/4], s_reg[0x0288/4], s_reg[0x028C/4]);''')
@@ -323,7 +359,7 @@ static int sc1_vk_instance(VkInstance instance) {
     text = '#include "../../src/guest_exceptions.h"\n' + text
     # The diagnostic supervisor restarts the same image after an Xbox quick
     # reboot, carrying the original 4 KiB launch page between processes.
-    text = replace_once(text, '        if (cmdline && *cmdline) {', '''#ifdef _WIN32
+    text = replace_once(text, '        if (cmdline && *cmdline) {', '''#if defined(_WIN32) || defined(__SWITCH__)
         const char *handoff = getenv("SC1_LAUNCH_HANDOFF");
         FILE *launch_file = handoff ? fopen(handoff, "rb") : NULL;
         if (launch_file) {
@@ -344,7 +380,7 @@ static int sc1_vk_instance(VkInstance instance) {
         } else
 #endif
         if (cmdline && *cmdline) {''')
-    text = replace_once(text, '    xbox_HalReturnToFirmware(routine);', '''#ifdef _WIN32
+    text = replace_once(text, '    xbox_HalReturnToFirmware(routine);', '''#if defined(_WIN32) || defined(__SWITCH__)
     {
         const char *handoff = getenv("SC1_LAUNCH_HANDOFF");
         uint32_t page = BRIDGE_MEM32(XBOX_KERNEL_DATA_BASE + KDATA_LAUNCH_DATA_PAGE);
@@ -370,6 +406,10 @@ static int sc1_vk_instance(VkInstance instance) {
             }
         }
     }
+#endif
+#ifdef __SWITCH__
+    extern void sc1_horizon_exit(uint32_t);
+    sc1_horizon_exit(routine);
 #endif
     xbox_HalReturnToFirmware(routine);''')
     text = replace_once(text, 'static SRWLOCK s_guest_threads_lock = SRWLOCK_INIT;',

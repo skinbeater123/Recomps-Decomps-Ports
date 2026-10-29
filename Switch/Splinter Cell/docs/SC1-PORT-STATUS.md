@@ -1,9 +1,36 @@
 # SC1 port status — 28 October 2026
 
-**Native ARM64 NRO linked; original menu navigation and training-scene execution
-have been demonstrated on Windows. No playable training or Switch hardware
-execution has been demonstrated.** The development NRO contains real lifted SC1 code and
+**Original menu navigation and saving have been demonstrated on Switch.
+Training-scene execution is demonstrated on Windows, with severe diagnostic
+rendering defects. Playable training remains unverified.** The development NRO contains real lifted SC1 code and
 the upstream Xbox runtime/NVK renderer. It is not a replacement-game demo.
+
+## Console checkpoint — 29 October 2026
+
+The owner tested NRO `e7082eb8b813`: original menu navigation and saving work
+on Switch. Intro and training Bink playback show black frames/white flashes and
+stuttering audio; loading is slow. Download Levels reportedly crashes, but the
+supplied logs contain no diagnostic for that separate failure. Start Game ends
+at original `HalReturnToFirmware(2)`, the same-image Xbox relaunch request.
+The tested runtime calls normal `exit`, which Buffy's earlier console evidence
+identifies as unsafe while guest threads still run. A source correction now
+saves the original 4096-byte launch page and exits with `svcExitProcess`; the
+next manual NRO launch consumes that page. Automatic in-process reboot remains
+unimplemented. This correction still requires console testing. The new `-O1` candidate is
+retained at `private/artifacts/sc1-ed8ed0ef65b2`, with NRO SHA-256
+`ed8ed0ef65b2110e8863e27c32e024efa135099ded6e990ded65c944c629e3ef`
+and matching ELF SHA-256
+`264623cc97f329944e2639b810d74efb173a38867197ad21b9b02bdc5d480d23`.
+Its manifest also records the generated-source checksums. The shared launch-page
+restore path was rebuilt and replayed successfully on the Windows host.
+
+The supplied movie interval records about 4.9 FPS, game-thread load around 92%
+of a core and no output-device underruns. It does not establish a single cause
+of audio stutter. SC1 uses original Bink; BLACK's working path uses XMV/WMADEC,
+and Buffy uses its own original decoder. SC1's existing NVK linear-texture
+hash already includes the movie-update correction found in Buffy. The next
+candidate uses `-O1` instead of `-O0` and Buffy's existing guest-priority handoff
+setting; performance improvement remains unverified.
 
 ## Executable and disc
 
