@@ -64,7 +64,7 @@ if(WIN32)
     target_compile_definitions(sc1 PRIVATE RECOMP_ABI_CHECK=1)
     target_compile_definitions(xbox_kernel PRIVATE RECOMP_ABI_CHECK=1)
   endif()
-  target_sources(sc1 PRIVATE src/host_threads.c)
+  target_sources(sc1 PRIVATE src/host_threads.c src/host_scanout.c)
   # clang-cl already has these builtins; rename the fork's MSVC wrappers.
   foreach(LIB sc1 xbox_apu xbox_nv2a)
     target_compile_definitions(${LIB} PRIVATE __builtin_ctz=sc1_builtin_ctz __builtin_clz=sc1_builtin_clz)

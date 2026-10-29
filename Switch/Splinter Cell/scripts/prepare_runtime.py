@@ -183,6 +183,12 @@ static int sc1_vk_instance(VkInstance instance) {
     (OUT / "xbox_memory_layout.c").write_text(text, encoding="utf-8")
     text = (UPSTREAM / "xboxrecomp/src/kernel/nv2a_pb_exec.c").read_text(encoding="utf-8")
     text = '#include "../../src/software_combiner.h"\n#include "../../src/software_blend.h"\n' + text
+    # Compare the guest CRTC scanout with the last render target; the latter
+    # may be a small offscreen texture rather than the displayed frame.
+    text = replace_once(text, '    dump_surface_bmp();\n\n    /* Drawn and skipped separately:',
+        '    dump_surface_bmp();\n#if defined(_WIN32)\n    extern void sc1_dump_scanout(void);\n    sc1_dump_scanout();\n#endif\n\n    /* Drawn and skipped separately:')
+    text = replace_once(text, '        xbox_Nv2aFrameCounterFlip();',
+        '        xbox_Nv2aFrameCounterFlip();\n#if defined(_WIN32)\n        extern void sc1_dump_scanout(void);\n        sc1_dump_scanout();\n#endif')
     text = replace_once(text, '    int textured = uv && s_gpu.tex.valid;', '''    int textured = uv && s_gpu.tex.valid;
     int menu_combiner = sc1_menu_combiner_matches(s_reg[0x1E60/4], s_reg[0x0AC0/4],
         s_reg[0x1E40/4], s_reg[0x0260/4], s_reg[0x0AA0/4], s_reg[0x0288/4], s_reg[0x028C/4]);''')

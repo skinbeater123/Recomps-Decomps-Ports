@@ -229,7 +229,12 @@ A subsequent bounded 240-second host run continued submitting original 3D
 geometry without another missing guest call, but the severely corrupted frames
 do not establish playable training. A later trace confirms that the original
 scene enables depth testing and depth writes, which the host software rasterizer
-does not implement. Display-surface selection also needs verification. SC1 now reports original flip retirements to the
+does not implement. An opt-in host diagnostic now captures PCRTC-selected scanout
+at display flips using the original display pitch. It confirms the real training
+briefing and subsequently shows severe 3D corruption on the actual 640x480
+display surface. The previous 64x64 screenshots were offscreen targets. Frames
+change while scripted stick input is delivered, but neither player movement nor
+camera response is established by those corrupted images. SC1 now reports original flip retirements to the
 existing runtime stall mechanism and coordinates PGRAPH and vblank handlers at
 dispatch level. A bounded 240-second direct training run did not report a flip-stall timeout;
 longer and native validation remain open.
@@ -250,6 +255,8 @@ software-renderer corrections. Eden launched this NRO and the guest opened the
 original menu assets and Bink videos, but guest Vulkan device enumeration failed
 with `no Vulkan device` and the log recorded zero rendered frames. Eden itself
 detected the host GPU; the cause of the guest enumeration failure remains open.
+A separate successful Buffy Eden guest log identifies EGL/OpenGL, not SC1's
+static NVK driver; the comparison does not establish why SC1 enumeration failed.
 No Eden menu rendering or physical Switch execution of this NRO is demonstrated.
 
 The correct Switch deployment
