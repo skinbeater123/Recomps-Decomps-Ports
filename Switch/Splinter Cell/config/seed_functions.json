@@ -374,5 +374,13 @@
   {
     "start": "0x0018B510",
     "evidence": "Original indirect callback reached on guest worker stack during training scene startup after 0x00032BC0. Original XBE code reference at 0x0018B63E identifies the callback. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x0018B0F0",
+    "evidence": "Original indirect callback reached on the guest worker stack during training scene startup after 0x0018B510 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00185090",
+    "evidence": "Original indirect callback reached on the guest worker stack during training scene startup after 0x0018B0F0 executed. Recover original body and calling convention unchanged."
   }
 ]

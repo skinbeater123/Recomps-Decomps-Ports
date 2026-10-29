@@ -1,8 +1,8 @@
 # SC1 port status — 28 October 2026
 
-**Native ARM64 NRO linked; original engine/loader startup demonstrated on Windows.
-No Switch execution, authentic rendered menu, training or interactive gameplay
-has been demonstrated.** The development NRO contains real lifted SC1 code and
+**Native ARM64 NRO linked; original menu navigation and training-scene execution
+have been demonstrated on Windows. No playable training or Switch hardware
+execution has been demonstrated.** The development NRO contains real lifted SC1 code and
 the upstream Xbox runtime/NVK renderer. It is not a replacement-game demo.
 
 ## Executable and disc
@@ -224,12 +224,15 @@ After Start, original callbacks `0x000C6580`, `0x00138060`, `0x000C66E0` and
 `0x0014DDD0`, `0x00077300`, `0x00023FF0` and `0x00032BC0` executed. The
 original training scene submitted 3D geometry; a captured host frame is severely
 corrupted and does not demonstrate playable or visually accurate gameplay. The
-latest run stopped on a guest worker at indirect callback `0x0018B510`; its
-recovery is prepared but has not yet been executed. Interactive training is not
-yet verified. SC1 now reports original flip retirements to the
+original worker callbacks `0x0018B510`, `0x0018B0F0` and `0x00185090` executed.
+A subsequent bounded 240-second host run continued submitting original 3D
+geometry without another missing guest call, but the severely corrupted frames
+do not establish playable training. A later trace confirms that the original
+scene enables depth testing and depth writes, which the host software rasterizer
+does not implement. Display-surface selection also needs verification. SC1 now reports original flip retirements to the
 existing runtime stall mechanism and coordinates PGRAPH and vblank handlers at
-dispatch level. One short direct training run reached the next callback without
-a stall timeout; the earlier timing-sensitive flip wait needs sustained validation.
+dispatch level. A bounded 240-second direct training run did not report a flip-stall timeout;
+longer and native validation remain open.
 The diagnostic framebuffer intermittently remained black at the briefing even
 while original input polling responded to Start.
 Buffy's existing implementation preserves the same launch page and coordinates

@@ -153,6 +153,18 @@ static int sc1_vk_instance(VkInstance instance) {
                         '    if (!sc1_vk_global()) return 0;\n    ai.pApplicationName = "Splinter Cell";')
     text = replace_once(text, '    n = 8;\n    if (vkEnumeratePhysicalDevices',
                         '    if (!sc1_vk_instance(s_inst)) return 0;\n    n = 8;\n    if (vkEnumeratePhysicalDevices')
+    # Preserve the actual Vulkan result and count.  A failed enumeration and a
+    # successful enumeration with zero devices require different investigation.
+    text = replace_once(text, """    n = 8;
+    if (vkEnumeratePhysicalDevices(s_inst, &n, pds) != VK_SUCCESS || !n) {
+        LOGE(\"no Vulkan device\\n\");
+        return 0;
+    }""", """    n = 8;
+    VkResult sc1_enum_result = vkEnumeratePhysicalDevices(s_inst, &n, pds);
+    if (sc1_enum_result != VK_SUCCESS || !n) {
+        LOGE(\"physical device enumeration result=%d count=%u\\n\", (int)sc1_enum_result, n);
+        return 0;
+    }""")
     (OUT / "nv2a_vk.c").write_text(text, encoding="utf-8")
     text = (UPSTREAM / "xboxrecomp/src/kernel/xbox_memory_layout.c").read_text(encoding="utf-8")
     text = replace_once(text, '''void xbox_mmio_write(uint32_t va, uint32_t val, unsigned size)
