@@ -200,6 +200,8 @@ static int sc1_vk_instance(VkInstance instance) {
     rect.layerCount = 1;''')
     text = replace_once(text, '    pend_flush();\n    s_frame++;',
         '    pend_flush();\n    s = sc1_scanout_surface(s);\n    if (s) sc1_surface_cpu_sync(s);\n    s_frame++;')
+    from prepare_helper_pixels import prepare as prepare_helper_pixels
+    text = prepare_helper_pixels(text, UPSTREAM, OUT, replace_once)
     (OUT / "nv2a_vk.c").write_text(text, encoding="utf-8")
     # Observe changed gamepad reports at the OHCI guest transfer boundary.
     text = (UPSTREAM / "xboxrecomp/src/usb/ohci.c").read_text(encoding="utf-8")

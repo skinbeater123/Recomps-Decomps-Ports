@@ -59,8 +59,8 @@ if(NOT SC1_DRIVER_SHA STREQUAL SC1_EXPECTED_DRIVER)
   message(FATAL_ERROR "Expected the existing self-contained Horizon NVK SDK archive")
 endif()
 get_target_property(NVK_SOURCES xbox_nv2a_vk SOURCES)
-list(REMOVE_ITEM NVK_SOURCES nv2a_vk.c)
-list(APPEND NVK_SOURCES "${ROOT}/private/host/nv2a_vk.c")
+list(REMOVE_ITEM NVK_SOURCES nv2a_vk.c ../nv2a_gl/gl_psh.c)
+list(APPEND NVK_SOURCES "${ROOT}/private/host/nv2a_vk.c" "${ROOT}/private/host/gl_psh.c")
 set_property(TARGET xbox_nv2a_vk PROPERTY SOURCES "${NVK_SOURCES}")
 # The local NVK SDK is the self-contained archive already linked by BLACK.
 # It bundles Expat/zlib/Rust; the upstream raw Mesa SDK instead needs portlibs.

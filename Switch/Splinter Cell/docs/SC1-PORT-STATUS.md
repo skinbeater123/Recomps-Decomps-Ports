@@ -51,14 +51,27 @@ coherency. Movie intervals issue no GPU draws or texture uploads, while the
 presenter previously displayed only Vulkan images. The change observes original
 CPU framebuffer writes before overlays and presentation; unchanged RAM does not
 overwrite GPU-rendered contents. Focused transfer/order tests pass and the NRO
-and matching ELF built successfully. Console validation is pending; FTP refused
-the upload. `SC1_CPU_SCANOUT=0` disables this change for comparison. The current
+and matching ELF built successfully. The owner verified opening video is visible
+on console; loading artwork and hallway/progression remain incorrect. The
+reported 4.6–4.7 second stalls coincide with periodic GPU captures at frames
+120/240/360, which have now been disabled in the console environment file.
+Playback pacing after disabling captures remains to be tested.
+`SC1_CPU_SCANOUT=0` disables this change for comparison. The current
 CPU upload path supports the observed 32-bit, unscaled scanout.
 
 Buffy's 30 October findings now identify separate relevant NVK fixes: push
 constants for helper-pixel texture coordinates, waiting for GPU end timestamps
 instead of early fences, and an opaque-alpha presentation pass. These remain
 follow-up candidates for SC1, not changes bundled into the CPU-framebuffer test.
+The helper-pixel fix is now adapted in v0.0.4: texture scales use a 32-byte
+fragment push-constant range, retaining the uniform block's padding/offsets.
+Scales are pushed on each draw so clear/post passes cannot leave stale values.
+Shader-generation checks cover 1–8 stages and preserve the GL dialect; the
+Switch renderer and NRO compile successfully. Candidate
+`0.0.4-20261030-142826Z-27b1bbc0` was uploaded and fully readback-verified.
+Its console rendering result remains pending. Fence/timestamp and compositor
+alpha changes are not included. Original cinematic control release remains
+the next independent execution investigation; no input lock is bypassed.
 
 The supplied movie interval records about 4.9 FPS, game-thread load around 92%
 of a core and no output-device underruns. It does not establish a single cause
