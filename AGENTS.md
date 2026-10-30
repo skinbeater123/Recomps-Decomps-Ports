@@ -5,7 +5,7 @@ Applies to all folders in this repository. The public `main` branch is the centr
 ## Required reading before work
 1. `README.md` — project scope, current tracks, and owner constraints.
 2. `Switch/SHARED-KNOWLEDGE.md` — historical, date-qualified Switch observations.
-3. `Switch/Knowledge/README.md` and `Switch/Knowledge/REPEATABLE-WORKFLOW.md` — cross-title evidence and working method.
+3. `Switch/Knowledge/README.md`, `Switch/Knowledge/REPEATABLE-WORKFLOW.md`, and `Switch/Knowledge/BUFFY-PORT-RETROSPECTIVE-2026-10-31.md` — cross-title evidence, a completed-port case study and working method.
 4. The relevant game's own up-to-date code, status, and proof files. A central summary never overrides direct current-source evidence.
 
 ## Evidence discipline
@@ -19,7 +19,7 @@ Applies to all folders in this repository. The public `main` branch is the centr
 - Protect working per-game branches; do not merge, reset, or rewrite game forks when updating central knowledge.
 - Treat GitHub as the source of truth for documented decisions. Preserve commit and PR references; stage local experiments separately.
 - Prefer targeted source inspection, meaningful integrated milestones and the installed Eden Switch emulator for quick feedback. No NRO after every change, no large synthetic gate suites without an actual blocker, and reserve human Switch hardware testing for significant milestones.
-- Native per-title recompilation is currently the working default. hakuX/FEX whole-emulator portability is an optional bounded investigation, not an authorized replacement of the playable BLACK runtime.
+- Native per-title recompilation is currently the working default. Buffy demonstrates an **NV2A pushbuffer LLE + NVK** approach, whereas BLACK's working runtime is different; do not conflate the renderers, XDK ABIs or game-specific hooks. hakuX/FEX whole-emulator portability is an optional bounded investigation, not an authorized replacement of either native port.
 - Stop when the projected work becomes a substantial custom emulator or GPU/runtime rewrite without a clear economical payoff.
 
 ## Publication and licenses
