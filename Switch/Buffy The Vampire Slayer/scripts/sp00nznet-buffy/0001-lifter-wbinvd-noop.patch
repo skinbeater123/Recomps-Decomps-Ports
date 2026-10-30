@@ -1,0 +1,26 @@
+diff --git a/tools/recomp/lifter.py b/tools/recomp/lifter.py
+index 775612f..b42b113 100644
+--- a/tools/recomp/lifter.py
++++ b/tools/recomp/lifter.py
+@@ -440,6 +440,8 @@ _EFLAGS_PRESERVE = frozenset({
+     "call",
+     "int3", "int", "wait",
+     "cld", "std", "cli", "sti",
++    # Cache write-back/invalidate: privileged, flagless, nothing to model.
++    "wbinvd", "invd",
+     # LOOP counts ECX down and branches on it; LOOPE/LOOPNE additionally
+     # read ZF. None of the three write EFLAGS, so a comparison before the
+     # loop still answers the jcc after it.
+@@ -1764,6 +1766,12 @@ class Lifter:
+         if m.startswith("prefetch") or m in ("sfence", "lfence", "mfence"):
+             return [f"(void)0; /* {m}: cache/ordering hint, nothing to model */"]
+ 
++        # Cache write-back/invalidate. The XDK's D3D (4432 dxgcreate) runs
++        # wbinvd while setting up the GPU; host memory is coherent, so there
++        # is nothing to flush.
++        if m in ("wbinvd", "invd"):
++            return [f"(void)0; /* {m}: cache flush, nothing to model */"]
++
+         if m in ("stc", "clc", "cmc"):
+             if not self.needs_cf:
+                 return [f"/* {m}: no adc/sbb in this function consumes CF */"]
