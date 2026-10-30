@@ -2,12 +2,12 @@
 
 Evidence-led original Xbox → Nintendo Switch 1 native homebrew ports, with **static/native recompilation as the established default** and an optional, bounded shared-emulator research track. Our goal is actual playable games on physical Switch hardware, not simply producing an NRO or collecting compilation passes.
 
-**Knowledge checkpoint:** 29 October 2026 (Australia/Sydney). Historical findings are separately dated; see proof levels before treating a report as current.
+**Knowledge checkpoint:** 31 October 2026 (Australia/Sydney). Historical findings are separately dated; see proof levels before treating a report as current.
 
 ## Current tracks
 
 - [BLACK](Switch/Black/) — **owner reports playable on actual Switch 1 as of 27 Oct 2026**. Cutscene/video stutter remained at that checkpoint; precise build/FPS verification belongs in its working fork. Protect the working native path.
-- [Buffy the Vampire Slayer (2002)](Switch/Buffy%20The%20Vampire%20Slayer/) — independent recomp/decomp and graphics/native-port workstream. Latest fork HEAD and actual game results await reconciliation; do not infer playable status.
+- [Buffy the Vampire Slayer (2002)](Switch/Buffy%20The%20Vampire%20Slayer/) — **owner reports port completed**. A private 30 Oct real-Switch `1030.0049-vk` log shows the native NVK game renderer, APU, input events and gameplay-scale drawing, with scene-dependent 13.5–41.2 FPS samples. The latest final code HEAD/NRO hash is not present in the older public PR #2. [Completed-port retrospective](Switch/Knowledge/BUFFY-PORT-RETROSPECTIVE-2026-10-31.md).
 - [Splinter Cell (SC1)](Switch/Splinter%20Cell/) — PC/Xbox source choices, Android-derived work and Switch-native implementation investigation. Use actual SC1 branch and status receipts for current conclusions.
 - **Deathrow / other titles** — optional follow-ups; no authorization for lengthy speculative custom runtimes.
 - **hakuX 1.2.0 / Xbox-modified FEX** — source-level research into reusable Xbox kernel, XBE, NV2A, APU and possible full emulator on Switch. **No Horizon native hakuX game execution or performance proof.** [Forensic assessment](Switch/Research/HAKUX-FEX-FORENSIC-2026-10-29.md).
@@ -18,6 +18,7 @@ Evidence-led original Xbox → Nintendo Switch 1 native homebrew ports, with **s
 - [Knowledge index](Switch/Knowledge/README.md) — cross-game findings, ingestion status and evidence provenance.
 - [Evidence register](Switch/Knowledge/EVIDENCE-REGISTER.md) — what has actually run vs source-inspected, user-reported, or hypothesized.
 - [Repeatable porting methodology](Switch/Knowledge/REPEATABLE-WORKFLOW.md) — source selection, native AOT, GPU/audio, target tests and stop/go economics.
+- [Buffy completed-port retrospective](Switch/Knowledge/BUFFY-PORT-RETROSPECTIVE-2026-10-31.md) — concrete linker-map, low-level XDK, guest-memory, NVK, performance and audio lessons from a native Switch title.
 - [Shared diagnostic checkpoint](Switch/SHARED-KNOWLEDGE.md) — prior 26 Oct baseline, now with a clear 27–29 Oct supersession note.
 
 ## Owner constraints and publication rules
