@@ -88,3 +88,56 @@ for path in (root / 'generated').glob('recomp_*.c'):
         if decl not in text: raise RuntimeError('Expected generated math include')
         path.write_bytes(text.replace(exec_call, exec_hook, 1).encode('utf-8'))
 if len(exec_files) != 1: raise RuntimeError(f'Expected one input-command call, got {len(exec_files)}')
+
+# Observe the actual original AXIS property stores, after dead-zone parsing.
+write_files = []
+for path in (root / 'generated').glob('recomp_*.c'):
+    text = path.read_text(encoding='utf-8')
+    match = re.search(r'void sub_00084AF0\(void\)\n\{.*?\n\}', text, re.S)
+    if not match: continue
+    write_files.append(path)
+    body = match.group()
+    if 'SC1_TRACE_AXIS_WRITE(' in body: continue
+    store = '    MEMF(edi) = (float)fp_top(); fp_pop(); /* fstp */'
+    for label in ('00084E8D','00084EB3','00084EDD','00084F05','00084F1F'):
+        start = body.index(f'loc_{label}: ;')
+        at = body.index(store, start) + len(store)
+        body = body[:at] + f'\n    SC1_TRACE_AXIS_WRITE(0x{label}u, edi, MEM32(edi));' + body[at:]
+    declaration = ('#if defined(_WIN32)\n'
+        'extern void sc1_trace_axis_write(uint32_t,uint32_t,uint32_t);\n'
+        '#define SC1_TRACE_AXIS_WRITE(stage, property, value) sc1_trace_axis_write(stage, property, value)\n'
+        '#else\n#define SC1_TRACE_AXIS_WRITE(stage, property, value) ((void)0)\n#endif\n')
+    text = text[:match.start()] + body + text[match.end():]
+    text = text.replace('#include <math.h>', '#include <math.h>\n' + declaration, 1)
+    if declaration not in text: raise RuntimeError('Expected generated math include')
+    path.write_bytes(text.encode('utf-8'))
+if len(write_files) != 1: raise RuntimeError(f'Expected one original AXIS command body, got {len(write_files)}')
+
+constant_files = []
+for path in (root / 'generated').glob('recomp_*.c'):
+    text = path.read_text(encoding='utf-8')
+    marker = 'loc_0002E1E0: ;'
+    if marker not in text: continue
+    constant_files.append(path)
+    hook = marker + ('\n#if defined(_WIN32)\n'
+        '    extern void sc1_trace_axis_constant(uint32_t,uint32_t);\n'
+        '    sc1_trace_axis_constant(MEM32(esp + 4), MEM32(esp + 8));\n'
+        '#endif')
+    if hook not in text: path.write_bytes(text.replace(marker, hook, 1).encode('utf-8'))
+if len(constant_files) != 1: raise RuntimeError(f'Expected one original float-constant handler, got {len(constant_files)}')
+
+gate_files = []
+for path in (root / 'generated').glob('recomp_*.c'):
+    text = path.read_text(encoding='utf-8')
+    match = re.search(r'void sub_0002DFB0\(void\)\n\{.*?\n\}', text, re.S)
+    if not match: continue
+    gate_files.append(path)
+    body = match.group()
+    if 'sc1_trace_input_gate(' in body: continue
+    store = '    MEM32(edi) = eax;'
+    if body.count(store) != 2: raise RuntimeError('Original boolean assignment stores changed')
+    body = body.replace(store, store + ('\n#if defined(_WIN32)\n'
+        '    extern void sc1_trace_input_gate(uint32_t,uint32_t,uint32_t,uint32_t);\n'
+        '    sc1_trace_input_gate(esi, ebp, edi, eax);\n#endif'))
+    path.write_bytes((text[:match.start()] + body + text[match.end():]).encode('utf-8'))
+if len(gate_files) != 1: raise RuntimeError(f'Expected one original boolean assignment handler, got {len(gate_files)}')

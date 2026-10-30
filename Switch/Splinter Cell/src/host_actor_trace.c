@@ -7,6 +7,7 @@
 extern ptrdiff_t xbox_GetMemoryOffset(void);
 static uint32_t observed[32];
 static unsigned observed_count;
+static uint32_t watched_axis;
 void sc1_trace_exec_move(uint32_t actor)
 {
     static int enabled = -1;
@@ -86,4 +87,54 @@ void sc1_trace_axis_exec(uint32_t target, uint32_t object, uint32_t command)
             flags = mem[controller + 0x380u];
     }
     fprintf(stderr, "[SC1-AXIS-EXEC] target=%08X state=%u value=%08X viewport=%08X controller=%08X flags380=%X command=%s\n", target, state, value, viewport, controller, flags, ascii);
+}
+
+void sc1_trace_axis_write(uint32_t stage, uint32_t property, uint32_t value)
+{
+    static unsigned count;
+    static int watched;
+    static uint32_t last_property, last_value;
+    if (!getenv("SC1_TRACE_GUEST_PAD") || count >= 100) return;
+    if (!watched && (value & 0x7fffffffu) && getenv("SC1_WATCH_AXIS_PROPERTY")) {
+        extern int sc1_watch_address(uint32_t);
+        watched = sc1_watch_address(property);
+        if (watched) watched_axis = property;
+    }
+    if (!(value & 0x7fffffffu) && count >= 8) return;
+    if (property == last_property && value == last_value) return;
+    last_property = property; last_value = value; ++count;
+    fprintf(stderr, "[SC1-AXIS-WRITE] stage=%08X property=%08X value=%08X\n",
+            stage, property, value);
+}
+
+void sc1_trace_axis_constant(uint32_t frame, uint32_t result)
+{
+    static unsigned count;
+    if (!watched_axis || result != watched_axis || count++ >= 8 ||
+        frame < 0x10000u || frame > 0x03ffffe0u) return;
+    const uint8_t *mem = (const uint8_t *)xbox_GetMemoryOffset();
+    for (unsigned depth = 0; depth < 8 && frame >= 0x10000u && frame <= 0x03ffffe0u; ++depth) {
+        const uint32_t *f = (const uint32_t *)(mem + frame);
+        uint32_t node = f[1];
+        if (node < 0x10000u || node >= 0x03ffffdcu) break;
+        uint32_t name = *(const uint32_t *)(mem + node + 0x20);
+        fprintf(stderr, "[SC1-AXIS-SCRIPT] depth=%u frame=%08X node=%08X name=%08X object=%08X code=%08X previous=%08X\n",
+                depth, frame, node, name, f[2], f[3], f[5]);
+        frame = f[5];
+    }
+}
+
+void sc1_trace_input_gate(uint32_t frame, uint32_t property, uint32_t target, uint32_t value)
+{
+    static unsigned count;
+    if (!getenv("SC1_TRACE_GUEST_PAD") || count >= 32 ||
+        property < 0x10000u || property > 0x03ffffa8u ||
+        frame < 0x10000u || frame > 0x03ffffe0u) return;
+    const uint8_t *mem = (const uint8_t *)xbox_GetMemoryOffset();
+    if (*(const uint16_t *)(mem + property + 0x44) != 0x380u ||
+        *(const uint32_t *)(mem + property + 0x54) != 0x20u) return;
+    ++count;
+    const uint32_t *f = (const uint32_t *)(mem + frame);
+    fprintf(stderr, "[SC1-INPUT-GATE] target=%08X flags=%08X node=%08X object=%08X code=%08X\n",
+            target, value, f[1], f[2], f[3]);
 }

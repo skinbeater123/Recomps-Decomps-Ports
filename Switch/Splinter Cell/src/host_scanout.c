@@ -9,6 +9,25 @@
 extern ptrdiff_t xbox_GetMemoryOffset(void);
 extern uint32_t xbox_mmio_read(uint32_t va, unsigned size);
 extern uint32_t xbox_GetDisplayFramebuffer(uint32_t *pitch);
+static uint32_t sc1_target_va, sc1_target_pitch, sc1_target_width, sc1_target_height;
+
+void sc1_note_render_target(uint32_t va, uint32_t pitch, uint32_t width, uint32_t height)
+{
+    sc1_target_va = va; sc1_target_pitch = pitch;
+    sc1_target_width = width; sc1_target_height = height;
+}
+
+void sc1_compare_render_scanout(void)
+{
+    static ULONGLONG last;
+    if (!getenv("SC1_TRACE_SCANOUT_TARGET")) return;
+    ULONGLONG now = GetTickCount64();
+    if (last && now - last < 1000) return;
+    last = now;
+    fprintf(stderr, "[SC1-TARGET] scanout=%08X last=%08X pitch=%u size=%ux%u\n",
+            xbox_mmio_read(0xFD600800u, 4) & 0x03ffffffu, sc1_target_va,
+            sc1_target_pitch, sc1_target_width, sc1_target_height);
+}
 
 void sc1_dump_scanout(void)
 {

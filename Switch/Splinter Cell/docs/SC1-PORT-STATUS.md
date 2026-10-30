@@ -1,8 +1,8 @@
-# SC1 port status — 29 October 2026
+# SC1 port status — 31 October 2026
 
 **Original menu navigation and saving have been demonstrated on Switch.
-Training-scene execution is demonstrated on Windows, with severe diagnostic
-rendering defects. Playable training remains unverified.** The development NRO contains real lifted SC1 code and
+Training-scene rendering is demonstrated on Switch, with incorrect lighting and
+no verified player/camera progression. Playable training remains unverified.** The development NRO contains real lifted SC1 code and
 the upstream Xbox runtime/NVK renderer. It is not a replacement-game demo.
 
 ## Console checkpoint — 29 October 2026
@@ -22,7 +22,7 @@ same process. Two Windows menu-to-training runs retired all four old threads
 the authentic CIA Training Farm briefing without a supervisor relaunch.
 The second run accepted Start and resumed original training 3D submissions;
 its displayed scene still has the established software-rendering corruption.
-The adapted lifecycle still requires console testing. The earlier manual-restart `-O1` candidate is
+The adapted lifecycle has since passed console testing (see below). The earlier manual-restart `-O1` candidate is
 retained at `private/artifacts/sc1-ed8ed0ef65b2`, with NRO SHA-256
 `ed8ed0ef65b2110e8863e27c32e024efa135099ded6e990ded65c944c629e3ef`
 and matching ELF SHA-256
@@ -33,6 +33,32 @@ restore path was rebuilt and replayed successfully on the Windows host.
 Builds now read `VERSION` and embed a UTC timestamp in the hbmenu title, with
 the full version/timestamp/revision in logs and NRO/ELF filenames. The build
 script retains matching artifacts and SHA-256 manifests under `private/artifacts`.
+Candidate `0.0.2-20261029-115131Z-a76e9f4b` was built and uploaded to the
+owner's Switch FTP endpoint, with a full readback matching NRO SHA-256
+`4f574a6caa9483d406ebddd4584ef65a712db840a26d93e9295539896a478a32`.
+Its retained ELF SHA-256 is
+`0533f7aa02115890010a4c8decfd7c09f6ea944f4bdbc9f65aee8b582e889b93`.
+The embedded hbmenu title/version were independently decoded and checked.
+The owner's console logs verify the internal reboot: all four old threads
+stopped in 80 ms, followed by original training rendering at approximately
+20 FPS and 231 draws/frame. Native captures show black movies, white loading
+artwork and a brightly lit facility hallway. The engine continues executing;
+correct gameplay is not established. Host traces find the original cinematic
+input lock still set, rather than lost stick reports.
+
+The next candidate, `0.0.3-20261030-131041Z-91a329c4`, addresses CPU framebuffer
+coherency. Movie intervals issue no GPU draws or texture uploads, while the
+presenter previously displayed only Vulkan images. The change observes original
+CPU framebuffer writes before overlays and presentation; unchanged RAM does not
+overwrite GPU-rendered contents. Focused transfer/order tests pass and the NRO
+and matching ELF built successfully. Console validation is pending; FTP refused
+the upload. `SC1_CPU_SCANOUT=0` disables this change for comparison. The current
+CPU upload path supports the observed 32-bit, unscaled scanout.
+
+Buffy's 30 October findings now identify separate relevant NVK fixes: push
+constants for helper-pixel texture coordinates, waiting for GPU end timestamps
+instead of early fences, and an opaque-alpha presentation pass. These remain
+follow-up candidates for SC1, not changes bundled into the CPU-framebuffer test.
 
 The supplied movie interval records about 4.9 FPS, game-thread load around 92%
 of a core and no output-device underruns. It does not establish a single cause
@@ -319,15 +345,27 @@ coordinates pass focused arithmetic tests and each visibly changes the scanout,
 but neither alone nor together produces recognisable training graphics. They are
 not evidence of accurate rendering and are disabled by default. An original
 `AActor::execMove` probe recorded six actors during initial loading, with no
-further calls during stick input. The sampled actor identities are not established;
-movement and camera response remain unverified.
+further calls during stick input. Later name/reflection probes identified the
+original `ESam0`, `EPlayerController0`, `PlayerInput0` and `EPlayerCam0`.
+Both sticks reach the original XDK cache, viewport axes, bindings and float
+property stores. Original `PlayerInput` bytecode then deliberately clears
+forward/strafe when `bStopInput` (controller +0x380, mask 0x20) is set;
+`ToggleCinematic` copies `bInCinematic` into that flag. The observed game
+script sets both flags. Right-stick input also reaches `aLookUp`, but sampled
+player/camera transforms remain fixed, including a later timed test. This
+does not establish an input-runtime defect or playable training. The next
+state investigation is original cinematic completion and its release of
+control, alongside native console testing. An opt-in Windows-only
+`SC1_HOST_SKIP_RASTER` diagnostic suppresses software pixel work while
+retaining command/fence execution; its output is never rendering evidence.
 
 The correct Switch deployment
 storage is accessed at the owner-specified network endpoint. The original
 extracted files are staged there with ISO excluded. All 680 file sizes and nine
 pinned critical hashes were checked. A baseline NRO was uploaded and its hash
-verified by reading it back. No SC1 console launch or
-Horizon rendering is demonstrated. Original shadows, dynamic lighting,
+verified by reading it back. The owner subsequently demonstrated original menu
+navigation and saving on console, as recorded above. Training gameplay,
+original shadows, dynamic lighting,
 night/thermal vision, accurate movie playback/audio, gamepad behavior and mission
 progression remain unverified.
 

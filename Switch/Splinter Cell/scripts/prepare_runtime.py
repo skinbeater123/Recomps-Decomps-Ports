@@ -178,6 +178,28 @@ static int sc1_vk_instance(VkInstance instance) {
         LOGE(\"physical device enumeration result=%d count=%u\\n\", (int)sc1_enum_result, n);
         return 0;
     }""")
+    text = replace_once(text, '    uint32_t aa_sx, aa_sy;\n    int dirty;',
+        '    uint32_t aa_sx, aa_sy;\n    uint32_t sc1_pitch, sc1_bpp, sc1_cpu_hash, sc1_cpu_draw_frame;\n    int sc1_cpu_known;\n    int dirty;')
+    text = replace_once(text, '    if (s && zeta_va)\n        *dout = depth_get',
+        '    if (s) { s->sc1_pitch = sf->pitch; s->sc1_bpp = bpp; }\n    if (s && zeta_va)\n        *dout = depth_get')
+    text = replace_once(text, 'static void vk_draw_raw(const Nv2aRawBatch *b)\n{',
+        '#include "../../src/vk_scanout.inc"\n\nstatic void vk_draw_raw(const Nv2aRawBatch *b)\n{')
+    text = replace_once(text, '    s_drew_any = 1;\n    psh_key(r, &pk);',
+        '''    if (s->sc1_cpu_draw_frame != s_frame + 1) {
+        sc1_surface_cpu_sync(s);
+        s->sc1_cpu_draw_frame = s_frame + 1;
+    }
+    s_drew_any = 1;
+    psh_key(r, &pk);''')
+    text = replace_once(text, '    memset(&rect, 0, sizeof rect);\n    rect.layerCount = 1;',
+        '''    if (flags & 0xF0) {
+        if ((flags & 0xF0) != 0xF0) sc1_surface_cpu_sync(s);
+        sc1_surface_cpu_baseline(s);
+    }
+    memset(&rect, 0, sizeof rect);
+    rect.layerCount = 1;''')
+    text = replace_once(text, '    pend_flush();\n    s_frame++;',
+        '    pend_flush();\n    s = sc1_scanout_surface(s);\n    if (s) sc1_surface_cpu_sync(s);\n    s_frame++;')
     (OUT / "nv2a_vk.c").write_text(text, encoding="utf-8")
     # Observe changed gamepad reports at the OHCI guest transfer boundary.
     text = (UPSTREAM / "xboxrecomp/src/usb/ohci.c").read_text(encoding="utf-8")
@@ -198,6 +220,25 @@ static int sc1_vk_instance(VkInstance instance) {
 #endif
             }""")
     (OUT / "ohci.c").write_text(text, encoding="utf-8")
+    # Extend the existing diagnostic pad script to exercise camera controls.
+    text = (UPSTREAM / "xboxrecomp/src/usb/usb_gamepad.c").read_text(encoding="utf-8")
+    text = replace_once(text,
+        '        { "lsl", 0, 0, 1 }, { "lsr", 0, 0, 2 }, { "lsu", 0, 0, 4 }, { "lsd", 0, 0, 8 },',
+        '        { "lsl", 0, 0, 1 }, { "lsr", 0, 0, 2 }, { "lsu", 0, 0, 4 }, { "lsd", 0, 0, 8 },\n'
+        '        { "rsl", 0, 0, 16 }, { "rsr", 0, 0, 32 }, { "rsu", 0, 0, 64 }, { "rsd", 0, 0, 128 },')
+    text = replace_once(text,
+        '                out[14] = (uint8_t)(v & 0xFF); out[15] = (uint8_t)((uint16_t)v >> 8);\n            }',
+        '''                out[14] = (uint8_t)(v & 0xFF); out[15] = (uint8_t)((uint16_t)v >> 8);
+            }
+            if (steps[i].stick & 48) {
+                int16_t v = (steps[i].stick & 16) ? -32767 : 32767;
+                out[16] = (uint8_t)(v & 0xFF); out[17] = (uint8_t)((uint16_t)v >> 8);
+            }
+            if (steps[i].stick & 192) {
+                int16_t v = (steps[i].stick & 128) ? -32767 : 32767;
+                out[18] = (uint8_t)(v & 0xFF); out[19] = (uint8_t)((uint16_t)v >> 8);
+            }''')
+    (OUT / "usb_gamepad.c").write_text(text, encoding="utf-8")
     text = (UPSTREAM / "xboxrecomp/src/kernel/xbox_memory_layout.c").read_text(encoding="utf-8")
     # Record the host instruction that performed the watched write; symbols
     # map it back to the original lifted function without changing guest code.
@@ -331,11 +372,33 @@ int sc1_watch_address(uint32_t va) { return watch_arm(va); }
     # may be a small offscreen texture rather than the displayed frame.
     text = replace_once(text, '    dump_surface_bmp();\n\n    /* Drawn and skipped separately:',
         '    dump_surface_bmp();\n#if defined(_WIN32)\n    extern void sc1_dump_scanout(void);\n    sc1_dump_scanout();\n#endif\n\n    /* Drawn and skipped separately:')
+    for signature in ('static void clear_surface(uint32_t param)',
+                      'static void draw_primitive(void)',
+                      'static void draw_inline_array(void)',
+                      'static void draw_immediate(void)'):
+        text = replace_once(text, signature + '\n{', signature + '''
+{
+#if defined(_WIN32)
+    extern void sc1_note_render_target(uint32_t,uint32_t,uint32_t,uint32_t);
+    sc1_note_render_target(dma_resolve(s_gpu.color_offset), s_gpu.pitch,
+                          s_gpu.clip_w, s_gpu.clip_h);
+#endif''')
     text = replace_once(text, '        xbox_Nv2aFrameCounterFlip();',
-        '        xbox_Nv2aFrameCounterFlip();\n#if defined(_WIN32)\n        extern void sc1_dump_scanout(void);\n        extern void sc1_poll_watch(void);\n        sc1_dump_scanout();\n        sc1_poll_watch();\n#endif')
+        '        xbox_Nv2aFrameCounterFlip();\n#if defined(_WIN32)\n        extern void sc1_dump_scanout(void);\n        extern void sc1_poll_watch(void);\n        extern void sc1_compare_render_scanout(void);\n        sc1_dump_scanout();\n        sc1_poll_watch();\n        sc1_compare_render_scanout();\n#endif')
     text = replace_once(text, '    int textured = uv && s_gpu.tex.valid;', '''    int textured = uv && s_gpu.tex.valid;
     int menu_combiner = sc1_menu_combiner_matches(s_reg[0x1E60/4], s_reg[0x0AC0/4],
         s_reg[0x1E40/4], s_reg[0x0260/4], s_reg[0x0AA0/4], s_reg[0x0288/4], s_reg[0x028C/4]);''')
+    text = replace_once(text,
+        '                            const float uv[3][2])\n{\n    uint8_t *mem = (uint8_t *)xbox_GetMemoryOffset();',
+        '''                            const float uv[3][2])
+{
+#if defined(_WIN32)
+    /* State-only timing diagnosis: command execution and fences still run. */
+    static int sc1_skip_pixels = -1;
+    if (sc1_skip_pixels < 0) sc1_skip_pixels = getenv("SC1_HOST_SKIP_RASTER") != NULL;
+    if (sc1_skip_pixels) return;
+#endif
+    uint8_t *mem = (uint8_t *)xbox_GetMemoryOffset();''')
     text = replace_once(text, '                    put_pixel(mem, bpp, x, y, texel);',
                         '                    put_pixel(mem, bpp, x, y, menu_combiner ? sc1_menu_combiner(texel, argb) : texel);')
     blend_start = text.index('    /* src*srcAlpha + dst*(1-srcAlpha), and only that pair.')
