@@ -1,0 +1,17 @@
+{
+  "burnout3-sw": {
+    "url": "https://github.com/antoxa2584x/burnout3-sw.git",
+    "commit": "28663a61cb925311d2ff516d6216df84af0b7c42",
+    "branch": "switch"
+  },
+  "horizon_sdk": {
+    "nvk_sha256": "ff65a74b46fe749f6be73eac3c8968d70e312c7646f815f26b69f4aa35737d26",
+    "glslang_version": "16.0.0"
+  },
+  "executable": {
+    "sha256": "d9cc30aa5c391d0e0ae6291e086a3b318b5a8f421b107b75266544d47254a282",
+    "entry": "0x001772D7",
+    "region": "Europe/rest-of-world",
+    "xdk": 4928
+  }
+}

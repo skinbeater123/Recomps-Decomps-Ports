@@ -1,0 +1,406 @@
+[
+  {
+    "start": "0x00015960",
+    "evidence": "European retail native startup: ICALL from 0x0003EDAF, host-run.log, 27 October 2026"
+  },
+  {
+    "start": "0x00015720",
+    "evidence": "Native startup ICALL from recovered 0x00015960; active vtable 0x00260F28 slot 0"
+  },
+  {
+    "start": "0x00015AB0",
+    "evidence": "Slot 2 in runtime-observed vtable 0x00260F28; table ends at 0x00260F44 before a UTF-16 string"
+  },
+  {
+    "start": "0x00017980",
+    "evidence": "Native original LIN loader: call from 0x0001A480, active stream vtable 0x002611C0 slot 1"
+  },
+  {
+    "start": "0x00028760",
+    "evidence": "Native original engine/INI initialization: callback invoked from 0x0002BD59 after reading common.lin and UW.ini"
+  },
+  {
+    "start": "0x000F6BF0",
+    "evidence": "Native render-device initialization from 0x00021069; runtime-observed vtable 0x002780B0 slot 24"
+  },
+  {
+    "start": "0x000F7070",
+    "evidence": "Slot 31 of runtime-observed render-device vtable 0x002780B0; 43 code pointers before class name"
+  },
+  {
+    "start": "0x000F6490",
+    "evidence": "Slot 39 of runtime-observed render-device vtable 0x002780B0; 43 code pointers before class name"
+  },
+  {
+    "start": "0x00038570",
+    "evidence": "Original object-loading callback from 0x000396BF; active archive vtable 0x002677D0 slot 4"
+  },
+  {
+    "start": "0x001F6870",
+    "evidence": "Original XDK 4928 GPU interrupt routine registered by KeConnectInterrupt; vblank reports ISR not callable without this seed"
+  },
+  {
+    "start": "0x00258F98",
+    "evidence": "Original XDK module initializer at descriptor 0x00258E00+4; four-entry table 0x00258DD4..0x00258DE4 iterated by observed dispatcher call 0x0025971C"
+  },
+  {
+    "start": "0x002594D5",
+    "evidence": "Original XDK module initializer at descriptor 0x00258F3C+4; four-entry table 0x00258DD4..0x00258DE4 iterated by observed dispatcher call 0x0025971C"
+  },
+  {
+    "start": "0x002597E5",
+    "evidence": "Original XDK module initializer at descriptor 0x00258F80+4; four-entry table 0x00258DD4..0x00258DE4 iterated by observed dispatcher call 0x0025971C"
+  },
+  {
+    "start": "0x001E6DF2",
+    "evidence": "Original XNET state callback observed at indirect call 0x001E17E2, descriptor +0xC, during menu/HUD loading with desktop RAM mirrors disabled"
+  },
+  {
+    "start": "0x00259D81",
+    "evidence": "Original XPP module descriptor 0x00258E00 callback field +0x8; descriptor dispatch +8 observed at 0x0025B597 while OHCI enumerates the original input device"
+  },
+  {
+    "start": "0x00259F03",
+    "evidence": "Original XPP module descriptor 0x00258E00 callback field +0xC; descriptor dispatch +8 observed at 0x0025B597 while OHCI enumerates the original input device"
+  },
+  {
+    "start": "0x0025D3F4",
+    "evidence": "Original XPP module descriptor 0x00258F3C callback field +0x8; descriptor dispatch +8 observed at 0x0025B597 while OHCI enumerates the original input device"
+  },
+  {
+    "start": "0x0025CE06",
+    "evidence": "Original XPP module descriptor 0x00258F3C callback field +0xC; descriptor dispatch +8 observed at 0x0025B597 while OHCI enumerates the original input device"
+  },
+  {
+    "start": "0x0025E235",
+    "evidence": "Original XPP module descriptor 0x00258F80 callback field +0x8; descriptor dispatch +8 observed at 0x0025B597 while OHCI enumerates the original input device"
+  },
+  {
+    "start": "0x0025DC1E",
+    "evidence": "Original XPP module descriptor 0x00258F80 callback field +0xC; descriptor dispatch +8 observed at 0x0025B597 while OHCI enumerates the original input device"
+  },
+  {
+    "start": "0x001F7220",
+    "evidence": "Original D3D deferred interrupt callback queued by observed ISR 0x001F6870; runtime reports DPC routine not in dispatch, leaves PMC interrupt enable masked and stalls original NOP(40) trap"
+  },
+  {
+    "start": "0x0022D1F0",
+    "evidence": "Observed original Bink decoder callback at indirect call 0x0022E554 while decoding videos/logos.bik; recover original routine unchanged"
+  },
+  {
+    "start": "0x00235160",
+    "evidence": "Original Bink pixel-conversion callback table at 0x003A34A4..0x003A34D0; callback 0x00235160 observed at 0x0022B4C5 while rendering logos.bik. Recover this bounded table unchanged"
+  },
+  {
+    "start": "0x002353B0",
+    "evidence": "Original Bink pixel-conversion callback table at 0x003A34A4..0x003A34D0; callback 0x00235160 observed at 0x0022B4C5 while rendering logos.bik. Recover this bounded table unchanged"
+  },
+  {
+    "start": "0x0023C4E0",
+    "evidence": "Original Bink pixel-conversion callback table at 0x003A34A4..0x003A34D0; callback 0x00235160 observed at 0x0022B4C5 while rendering logos.bik. Recover this bounded table unchanged"
+  },
+  {
+    "start": "0x0023BF40",
+    "evidence": "Original Bink pixel-conversion callback table at 0x003A34A4..0x003A34D0; callback 0x00235160 observed at 0x0022B4C5 while rendering logos.bik. Recover this bounded table unchanged"
+  },
+  {
+    "start": "0x0023C1C0",
+    "evidence": "Original Bink pixel-conversion callback table at 0x003A34A4..0x003A34D0; callback 0x00235160 observed at 0x0022B4C5 while rendering logos.bik. Recover this bounded table unchanged"
+  },
+  {
+    "start": "0x0023BD80",
+    "evidence": "Original Bink pixel-conversion callback table at 0x003A34A4..0x003A34D0; callback 0x00235160 observed at 0x0022B4C5 while rendering logos.bik. Recover this bounded table unchanged"
+  },
+  {
+    "start": "0x0025CAF9",
+    "evidence": "Observed original XPP input callback while opening videos/videointro.bik, stored in descriptor field 0x00258EC8; observed call returns to original 0x0025D37A"
+  },
+  {
+    "start": "0x000E9180",
+    "evidence": "Original menu object vtable 0x00276890..0x00276900; callback 0x000E9180 observed at original call returning to 0x0003862E after intro completion. Only two unrecovered entries in this bounded object vtable"
+  },
+  {
+    "start": "0x000E3DA0",
+    "evidence": "Original menu object vtable 0x00276890..0x00276900; callback 0x000E9180 observed at original call returning to 0x0003862E after intro completion. Only two unrecovered entries in this bounded object vtable"
+  },
+  {
+    "start": "0x00103530",
+    "evidence": "Observed original menu property virtual method at object vtable 0x00277984 slot +0x1C, observed call returns to original 0x000F96E1 after recovering E9180. Recover original method unchanged"
+  },
+  {
+    "start": "0x00037BE0",
+    "evidence": "Original Unreal core token 0x05 callback in initialized GNatives at 0x0030D780, verified in retained pre-serializer memory capture. Original dispatcher 0x0003343F reached missing execLet token 0x0F during menu script startup. Recover the missing members of this bounded core-expression dispatch group unchanged"
+  },
+  {
+    "start": "0x0002DE50",
+    "evidence": "Original Unreal core token 0x0F callback in initialized GNatives at 0x0030D780, verified in retained pre-serializer memory capture. Original dispatcher 0x0003343F reached missing execLet token 0x0F during menu script startup. Recover the missing members of this bounded core-expression dispatch group unchanged"
+  },
+  {
+    "start": "0x00033CD0",
+    "evidence": "Original Unreal core token 0x10 callback in initialized GNatives at 0x0030D780, verified in retained pre-serializer memory capture. Original dispatcher 0x0003343F reached missing execLet token 0x0F during menu script startup. Recover the missing members of this bounded core-expression dispatch group unchanged"
+  },
+  {
+    "start": "0x00037640",
+    "evidence": "Original Unreal core token 0x11 callback in initialized GNatives at 0x0030D780, verified in retained pre-serializer memory capture. Original dispatcher 0x0003343F reached missing execLet token 0x0F during menu script startup. Recover the missing members of this bounded core-expression dispatch group unchanged"
+  },
+  {
+    "start": "0x000C7550",
+    "evidence": "Original AActor::execMove callback from bounded transform/collision native registry 0x002C3B40..0x002C3B70. Menu startup script actually called execMove (0x000C7550), returning to 0x00032E62 through original native dispatcher. Preserve original movement and collision logic"
+  },
+  {
+    "start": "0x000C78C0",
+    "evidence": "Original AActor::execSetRotation callback from bounded transform/collision native registry 0x002C3B40..0x002C3B70. Menu startup script actually called execMove (0x000C7550), returning to 0x00032E62 through original native dispatcher. Preserve original movement and collision logic"
+  },
+  {
+    "start": "0x000C7150",
+    "evidence": "Original AActor::execSetCollision callback from bounded transform/collision native registry 0x002C3B40..0x002C3B70. Menu startup script actually called execMove (0x000C7550), returning to 0x00032E62 through original native dispatcher. Preserve original movement and collision logic"
+  },
+  {
+    "start": "0x00088140",
+    "evidence": "Observed scene-initialization callback at original call 0x00082BBC, returning to 0x00082BC2, vtable 0x0026F4C0 slot +0xCC. Disassembly confirms actor location/region update and calls to original 0x000EF7B0/0x000879A0/0x00087930/0x000879F0. Original body recovered and executed during host scene initialization"
+  },
+  {
+    "start": "0x000C7F00",
+    "evidence": "Observed original script native called from dispatcher 0x00032E62 after scene initialization advanced beyond 0x00088140. Original registration pair 0x002C3AA4 identifies AActor::execFastTrace; recover its original body and calling convention."
+  },
+  {
+    "start": "0x00036890",
+    "evidence": "Original UObject string native GreaterEqual_StringString in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x000369C0",
+    "evidence": "Original UObject string native EqualEqual_StringString in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x00036AF0",
+    "evidence": "Original UObject string native NotEqual_StringString in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x00036C20",
+    "evidence": "Original UObject string native ComplementEqual_StringString in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x00036D50",
+    "evidence": "Original UObject string native Len in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x00036F30",
+    "evidence": "Original UObject string native Mid in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x00037E20",
+    "evidence": "Original UObject string native Left in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x00037F50",
+    "evidence": "Original UObject string native Right in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x00037180",
+    "evidence": "Original UObject string native Chr in bounded registration group 0x002B25BC..0x002B260C. Menu script reached execMid 0x00036F30 from 0x0002F2C8; GNatives token 0x7E confirmed in the retained initialized guest snapshot. Recover the original string operations unchanged."
+  },
+  {
+    "start": "0x00036310",
+    "evidence": "Original UObject string native At_StringString in registration group 0x002B2594..0x002B25BC. Menu script reached 0x00036310 from 0x0002DFA8 after execMid; recover neighboring original string operations unchanged."
+  },
+  {
+    "start": "0x00036470",
+    "evidence": "Original UObject string native Less_StringString in registration group 0x002B2594..0x002B25BC. Menu script reached 0x00036310 from 0x0002DFA8 after execMid; recover neighboring original string operations unchanged."
+  },
+  {
+    "start": "0x00036630",
+    "evidence": "Original UObject string native Greater_StringString in registration group 0x002B2594..0x002B25BC. Menu script reached 0x00036310 from 0x0002DFA8 after execMid; recover neighboring original string operations unchanged."
+  },
+  {
+    "start": "0x00036760",
+    "evidence": "Original UObject string native LessEqual_StringString in registration group 0x002B2594..0x002B25BC. Menu script reached 0x00036310 from 0x0002DFA8 after execMid; recover neighboring original string operations unchanged."
+  },
+  {
+    "start": "0x000378A0",
+    "evidence": "Original UObject native SaveConfig in registration group 0x002B267C..0x002B26C4. Menu startup reached IsInState at 0x000379F0 from 0x00034F6D; recover related original object/config/state operations unchanged."
+  },
+  {
+    "start": "0x00034E30",
+    "evidence": "Original UObject native DynamicLoadObject in registration group 0x002B267C..0x002B26C4. Menu startup reached IsInState at 0x000379F0 from 0x00034F6D; recover related original object/config/state operations unchanged."
+  },
+  {
+    "start": "0x000379F0",
+    "evidence": "Original UObject native IsInState in registration group 0x002B267C..0x002B26C4. Menu startup reached IsInState at 0x000379F0 from 0x00034F6D; recover related original object/config/state operations unchanged."
+  },
+  {
+    "start": "0x00037310",
+    "evidence": "Original UObject::Warn native at registration 0x002B2644..0x002B2654. Menu startup reached execWarn 0x00037310 via dispatcher return 0x00033446 after diagnostic execution of the original C++ exception handler; initialized GNatives token 0xE7 confirms execWarn."
+  },
+  {
+    "start": "0x00037490",
+    "evidence": "Original UObject::New native at registration 0x002B2644..0x002B2654. Menu startup reached execWarn 0x00037310 via dispatcher return 0x00033446 after diagnostic execution of the original C++ exception handler; initialized GNatives token 0xE7 confirms execWarn."
+  },
+  {
+    "start": "0x000656F0",
+    "evidence": "Original script native observed at indirect dispatcher 0x00032EF2 during menu startup after C++ exception handling. The retained initialized GNatives snapshot places this original callback at native index 0x4CF; disassembly shows original actor-related bytecode decoding. Recover unchanged."
+  },
+  {
+    "start": "0x000C7080",
+    "evidence": "Original AActor::IsAnimating native from animation registration group 0x002C3AC4..0x002C3B14. Menu startup reached execPlayAnim 0x000C5E10 through dispatcher return 0x00032E62. Recover original animation functions unchanged."
+  },
+  {
+    "start": "0x000C5E10",
+    "evidence": "Original AActor::PlayAnim native from animation registration group 0x002C3AC4..0x002C3B14. Menu startup reached execPlayAnim 0x000C5E10 through dispatcher return 0x00032E62. Recover original animation functions unchanged."
+  },
+  {
+    "start": "0x000C5CF0",
+    "evidence": "Original AActor::GetBoneCoords native from animation registration group 0x002C3AC4..0x002C3B14. Menu startup reached execPlayAnim 0x000C5E10 through dispatcher return 0x00032E62. Recover original animation functions unchanged."
+  },
+  {
+    "start": "0x000C8C70",
+    "evidence": "Original AActor::SetBoneScale native from animation registration group 0x002C3AC4..0x002C3B14. Menu startup reached execPlayAnim 0x000C5E10 through dispatcher return 0x00032E62. Recover original animation functions unchanged."
+  },
+  {
+    "start": "0x000638D0",
+    "evidence": "Original AActor::InterpolateRotatorValue native from character/animation registration group 0x002C3C74..0x002C3C94. Original Echelon character startup reached execInterpolateRotatorValue 0x000638D0 from 0x00034F6D. Recover original functions unchanged."
+  },
+  {
+    "start": "0x00063C90",
+    "evidence": "Original AActor::SetIKFade native from character/animation registration group 0x002C3C74..0x002C3C94. Original Echelon character startup reached execInterpolateRotatorValue 0x000638D0 from 0x00034F6D. Recover original functions unchanged."
+  },
+  {
+    "start": "0x00067E90",
+    "evidence": "Original AActor::GetSoundPosition native from character/animation registration group 0x002C3C74..0x002C3C94. Original Echelon character startup reached execInterpolateRotatorValue 0x000638D0 from 0x00034F6D. Recover original functions unchanged."
+  },
+  {
+    "start": "0x00064800",
+    "evidence": "Original AActor::execGetSoundDuration registered at 0x002C3A7C. Observed at native dispatch return 0x00032E92 after the original rotator interpolation callback executed during Echelon character startup. Recover the original sound-duration operation unchanged."
+  },
+  {
+    "start": "0x0016129F",
+    "evidence": "Observed original class construction callback invoked at 0x0004BBA6 (return 0x0004BBAC), stored in class field +0x4B0. Original class registration pushes this exact unaligned callback at 0x001612D4; it tests its argument and tail-jumps to original 0x001611EE. Recover unchanged."
+  },
+  {
+    "start": "0x001AFF00",
+    "evidence": "Original system-thread routine observed as PsCreateSystemThreadEx context at runtime after the diagnostic DSP acknowledgement; original instruction 0x001B0251 passes 0x001AFF00 as the worker entry. Recover the original worker body unchanged; this execution was diagnostic because DSP processing remains unimplemented."
+  },
+  {
+    "start": "0x000CAEE0",
+    "evidence": "Original AActor::ConsoleCommand native registered at 0x002C3B84..0x002C3B94. Original menu script reached execLockRootMotion 0x000CB920 from 0x00034F6D after the host thread-object status wait completed. Recover the original function unchanged."
+  },
+  {
+    "start": "0x000CB920",
+    "evidence": "Original AActor::LockRootMotion native registered at 0x002C3B84..0x002C3B94. Original menu script reached execLockRootMotion 0x000CB920 from 0x00034F6D after the host thread-object status wait completed. Recover the original function unchanged."
+  },
+  {
+    "start": "0x000C6490",
+    "evidence": "Original AActor::GetRootRotationDelta native registered at 0x002C3B84..0x002C3B94. Original menu script reached execLockRootMotion 0x000CB920 from 0x00034F6D after the host thread-object status wait completed. Recover the original function unchanged."
+  },
+  {
+    "start": "0x00080874",
+    "evidence": "Observed original branch arm from actor function 0x00080720 at branch 0x00080794 during execLockRootMotion. The disassembler split the original control flow at 0x00080857 and left this direct target unresolved; original bytes at 0x00080874 continue the existing guest stack frame and eventually execute the original epilogue. Recover the original branch unchanged."
+  },
+  {
+    "start": "0x00061F80",
+    "evidence": "Original vtable 0x0026BC58 slot +0x28 target reached from 0x0003862E during training asset deserialization after restoring the guest quick-reboot launch page. Recover the original body unchanged."
+  },
+  {
+    "start": "0x00031520",
+    "evidence": "Original indirect target reached from 0x00032E62 during training deserialization after original 0x00061F80 executed. Identified in vtable 0x002B27F8, slot +0x2B0; recover original body unchanged."
+  },
+  {
+    "start": "0x000C6580",
+    "evidence": "Original native script callback reached at guest 0x00034F6D after accepting Start on the CIA training briefing. Recover the original function and calling convention unchanged."
+  },
+  {
+    "start": "0x00138060",
+    "evidence": "Original indirect callback reached at 0x00032F22 during training script startup after original callback 0x000C6580. Identified in vtable 0x002CA080, slot +0xF4; recover unchanged."
+  },
+  {
+    "start": "0x000C66E0",
+    "evidence": "Original native script callback reached from 0x00034F6D after Start at the training briefing, following original callback 0x00138060. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00137070",
+    "evidence": "Original indirect script target reached from 0x00032EF2 during CIA training startup after callback 0x000C66E0. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00064520",
+    "evidence": "Original indirect target reached from 0x00032F22 in training script startup after original callback 0x00137070. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x000660B0",
+    "evidence": "Original indirect target reached from 0x00064650 in training script startup after 0x00064520 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00103070",
+    "evidence": "Original indirect target reached from 0x000F931C during training startup after 0x000660B0 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00101200",
+    "evidence": "Original indirect object callback reached from 0x000F96B1 during training startup after 0x00103070. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00103FE0",
+    "evidence": "Original indirect property callback reached from 0x000F96E1 during training object initialization after 0x00101200. Recover the original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00103330",
+    "evidence": "Original indirect property callback reached from 0x000F931C during training object initialization after 0x00103FE0. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00076F70",
+    "evidence": "Original indirect callback reached from 0x00032F22 during training initialization after 0x00103330. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x0014CB70",
+    "evidence": "Original indirect callback reached from 0x00032F22 during training initialization after 0x00076F70 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x0014DCA0",
+    "evidence": "Original indirect callback reached from 0x00032F22 during training initialization after 0x0014CB70 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x0014DDD0",
+    "evidence": "Original indirect callback reached from 0x00032F22 during training initialization after 0x0014DCA0 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00077300",
+    "evidence": "Original indirect callback reached from 0x00032E62 during training initialization after 0x0014DDD0 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00023FF0",
+    "evidence": "Original indirect callback reached from 0x0017BD6A during training initialization after 0x00077300 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00032BC0",
+    "evidence": "Original indirect callback reached from 0x00034F6D during training startup after 0x00023FF0 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x0018B510",
+    "evidence": "Original indirect callback reached on guest worker stack during training scene startup after 0x00032BC0. Original XBE code reference at 0x0018B63E identifies the callback. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x0018B0F0",
+    "evidence": "Original indirect callback reached on the guest worker stack during training scene startup after 0x0018B510 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x00185090",
+    "evidence": "Original indirect callback reached on the guest worker stack during training scene startup after 0x0018B0F0 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x000A4D40",
+    "evidence": "Original training execution after recovering float-greater shared flags tail reached this indirect callback; host-float-compare log 31 October 2026. Preserve original body and ABI."
+  },
+  {
+    "start": "0x00063150",
+    "evidence": "Original training execution advanced past 0x000A4D40 and reached this native callback from 0x00032F4B on 31 October 2026. Recover original body and ABI."
+  },
+  {
+    "start": "0x00116A10",
+    "evidence": "Original training AI state execution reached this native callback from 0x00032F4B after AddSoundRequest and movement callback recovery, 1 November 2026. Retain original body/ABI."
+  },
+  {
+    "start": "0x00124A20",
+    "evidence": "Original training AI moved Lambert through distinct positions after WalkToDestination recovery; next indirect callback reached via latent execution (0x000C81EC), 1 November 2026. Recover unchanged original body/ABI."
+  },
+  {
+    "start": "0x00188EC0",
+    "evidence": "Original training script advanced to its next Goal_Set after Lambert navigation. A guest worker reached this indirect callback (return stack 0x002425AB), 1 November 2026. Preserve original body/ABI."
+  }
+]

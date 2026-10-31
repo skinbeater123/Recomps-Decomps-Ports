@@ -1,0 +1,3 @@
+#pragma once
+#define SC1_BUILD_ID "@SC1_BUILD_ID@"
+#define SC1_BUILD_REVISION "@SC1_BUILD_REVISION@"
