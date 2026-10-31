@@ -8,6 +8,7 @@ extern ptrdiff_t xbox_GetMemoryOffset(void);
 static uint32_t observed[32];
 static unsigned observed_count;
 static uint32_t watched_axis;
+static uint32_t traced_player, traced_camera;
 void sc1_trace_exec_move(uint32_t actor)
 {
     static int enabled = -1;
@@ -137,4 +138,132 @@ void sc1_trace_input_gate(uint32_t frame, uint32_t property, uint32_t target, ui
     const uint32_t *f = (const uint32_t *)(mem + frame);
     fprintf(stderr, "[SC1-INPUT-GATE] target=%08X flags=%08X node=%08X object=%08X code=%08X\n",
             target, value, f[1], f[2], f[3]);
+}
+
+static void sc1_trace_pattern_impl(uint32_t object, uint32_t frame, uint32_t called)
+{
+    static unsigned count;
+    static struct { uint32_t object,node,flags; } seen[500];
+    if (!getenv("SC1_TRACE_PATTERNS") || count >= 500 || object < 0x10000u ||
+        object > 0x03fff000u || frame < 0x10000u || frame > 0x03ffffe0u) return;
+    const uint8_t *mem = (const uint8_t *)xbox_GetMemoryOffset();
+    uint32_t text = *(const uint32_t *)(mem + object + 0x28);
+    if (text < 0x10000u || text > 0x03ffff00u) return;
+    const uint16_t *s = (const uint16_t *)(mem + text);
+    const uint32_t *f = (const uint32_t *)(mem + frame);
+    uint32_t node = called ? called : f[1];
+    if (node < 0x10000u || node > 0x03ffffd0u) return;
+    uint32_t nt = *(const uint32_t *)(mem + node + 0x28);
+    if (nt < 0x10000u || nt > 0x03ffff00u) return;
+    char oname[100], fname[100]; unsigned i;
+    for (i=0;i<99 && s[i] && s[i]<128;++i) oname[i]=(char)s[i]; oname[i]=0;
+    s=(const uint16_t *)(mem+nt);
+    for (i=0;i<99 && s[i] && s[i]<128;++i) fname[i]=(char)s[i]; fname[i]=0;
+    if (!strcmp(oname,"EPlayerController0")) traced_player=object;
+    if (!strcmp(oname,"EPlayerCam0")) traced_camera=object;
+    if (!strcmp(fname,"GetPause")) return;
+    if (!strncmp(oname,"ELambert",8) && (!strcmp(fname,"RotateTowardsRotator") || !strcmp(fname,"SetRotation"))) {
+        static unsigned rotate_calls;
+        if(rotate_calls++<12) fprintf(stderr,"[SC1-ROTATE] %s function=%s params=%08X yaw=%u\n",oname,fname,f[4],*(const uint32_t *)(mem+object+0xd4));
+    }
+    if (!(oname[0]=='P' && oname[1]=='_')) {
+        if (!strncmp(oname,"EAIController",13)) {
+            if (!strstr(fname,"Goal") && !strstr(fname,"State") && strcmp(fname,"Tick") && strcmp(fname,"GetTurnSpeed")) return;
+        } else if (strncmp(oname,"EPlayerController",17) && strncmp(oname,"EPlayerCam",10)) return;
+        if (!strstr(fname,"Cinematic") && !strstr(fname,"Pattern") &&
+            !strstr(fname,"Pause") && !strstr(fname,"Start") && !strstr(fname,"Key") &&
+            !strstr(fname,"Goal") && !strstr(fname,"State") && strcmp(fname,"Tick") && strcmp(fname,"GetTurnSpeed")) return;
+    }
+    uint32_t flags=*(const uint32_t *)(mem+object+0x2ec);
+    for (i=0;i<count;++i)
+        if (seen[i].object==object && seen[i].node==node && seen[i].flags==flags) return;
+    seen[count].object=object;seen[count].node=node;seen[count].flags=flags;++count;
+    fprintf(stderr,"[SC1-PATTERN] %s@%08X function=%s code=%08X flags=%08X locals=%08X\n",
+            oname,object,fname,f[3],*(const uint32_t *)(mem+object+0x2ec),f[4]);
+}
+void sc1_trace_pattern_call(uint32_t object, uint32_t frame) { sc1_trace_pattern_impl(object,frame,0); }
+void sc1_trace_pattern_invoke(uint32_t object, uint32_t frame, uint32_t node) { sc1_trace_pattern_impl(object,frame,node); }
+
+void sc1_trace_ai_goal(uint32_t stage, uint32_t object, uint32_t goal, uint32_t result)
+{
+    static unsigned counts[32];
+    static uint32_t heads[32];
+    if (!getenv("SC1_TRACE_PATTERNS") || stage>=32 ||
+        object<0x10000u || object>0x03fff000u) return;
+    const uint8_t *m=(const uint8_t *)xbox_GetMemoryOffset();
+    uint32_t t=*(const uint32_t *)(m+object+0x28);
+    if(t<0x10000u || t>0x03ffff00u) return;
+    const uint16_t *s=(const uint16_t *)(m+t);
+    char name[80]; unsigned i;
+    for(i=0;i<79 && s[i] && s[i]<128;++i)name[i]=(char)s[i];name[i]=0;
+    if(strcmp(name,"EAIController0"))return;
+    if(stage==0){
+        static ULONGLONG last;
+        ULONGLONG now=GetTickCount64();
+        if(!last || now-last>=1000){
+            last=now;
+            uint32_t pawn=*(const uint32_t*)(m+object+0x37c);
+            uint32_t sam=traced_player?*(const uint32_t*)(m+traced_player+0x288):0;
+            if(pawn>=0x10000u && pawn<0x03fff000u){
+                const float*p=(const float*)(m+pawn+0xc4);
+                fprintf(stderr,"[SC1-WORLD] Lambert=%g,%g,%g yaw=%u",p[0],p[1],p[2],*(const uint32_t*)(m+pawn+0xd4));
+                if(sam>=0x10000u && sam<0x03fff000u){
+                    p=(const float*)(m+sam+0xc4);
+                    fprintf(stderr," Sam=%g,%g,%g yaw=%u stop=%u cinematic=%u",p[0],p[1],p[2],*(const uint32_t*)(m+sam+0xd4),!!(m[traced_player+0x380]&0x20),m[traced_player+0x5e0]&1);
+                }
+                if(traced_camera){p=(const float*)(m+traced_camera+0xc4);fprintf(stderr," camera=%g,%g,%g",p[0],p[1],p[2]);}
+                fputc('\n',stderr);
+            }
+        }
+    }
+    uint32_t list=*(const uint32_t *)(m+object+0x504);
+    uint32_t head=list>=0x10000u && list<0x03fffd00u?*(const uint32_t *)(m+list+0x288):0;
+    if (heads[stage]!=head) { heads[stage]=head; counts[stage]=0; }
+    if(counts[stage]++>=5)return;
+    fprintf(stderr,"[SC1-AI] stage=%u object=%08X goal=%08X head=%08X count=%u flags=%08X pawn=%08X result=%08X\n",
+        stage,object,goal,head,counts[stage],*(const uint32_t *)(m+object+0x38c),*(const uint32_t *)(m+object+0x37c),result);
+}
+
+void sc1_trace_rotation(uint32_t stage,uint32_t pawn,uint32_t params,uint32_t result)
+{
+ static unsigned counts[8];
+ if(!getenv("SC1_TRACE_PATTERNS") || stage>=8 || counts[stage]>=16 || pawn<0x10000u || pawn>0x03fff000u || params<0x10000u || params>0x03ffff00u)return;
+ const uint8_t*m=(const uint8_t*)xbox_GetMemoryOffset();
+ uint32_t t=*(const uint32_t*)(m+pawn+0x28);
+ if(t<0x10000u || t>0x03ffff00u)return;
+ const uint16_t*n=(const uint16_t*)(m+t);
+ if(n[0]!='E'||n[1]!='L'||n[2]!='a')return;
+ ++counts[stage];const uint32_t*p=(const uint32_t*)(m+params);
+ fprintf(stderr,"[SC1-ROTATION] stage=%u yaw=%u result=%08X params=%08X,%08X,%08X,%08X,%08X\n",stage,*(const uint32_t*)(m+pawn+0xd4),result,p[0],p[1],p[2],p[3],p[4]);
+}
+
+void sc1_trace_turn_result(uint32_t stack,uint32_t result,uint32_t target)
+{
+ static unsigned count;
+ if(!getenv("SC1_TRACE_PATTERNS") || count>=16 || stack<0x10000u || stack>0x03ffff00u)return;
+ const uint32_t*p=(const uint32_t*)((const uint8_t*)xbox_GetMemoryOffset()+stack);
+ if(p[2]!=32196)return;
+ ++count;fprintf(stderr,"[SC1-TURN-RESULT] caller=%08X step=%08X current=%u targetreg=%u result=%u\n",p[0],p[1],p[2],target,result);
+}
+
+void sc1_trace_turn_store(uint32_t frame,uint32_t result,uint32_t value)
+{
+ static unsigned count;
+ if(!getenv("SC1_TRACE_PATTERNS") || count>=16 || frame<0x10000u || frame>0x03ffff00u)return;
+ const uint8_t*m=(const uint8_t*)xbox_GetMemoryOffset();const uint32_t*f=(const uint32_t*)(m+frame);
+ if(value<32190 || value>32800)return;
+ ++count;fprintf(stderr,"[SC1-TURN-STORE] object=%08X result=%08X value=%u locals=%08X newYaw=%u code=%08X\n",f[2],result,value,f[4],*(const uint32_t*)(m+f[4]+0x1c),f[3]);
+}
+
+void sc1_trace_rotate_let(uint32_t frame,uint32_t target,uint32_t stage)
+{
+ static unsigned count;
+ if(!getenv("SC1_TRACE_PATTERNS") || count>=180 || frame<0x10000u || frame>0x03ffff00u)return;
+ const uint8_t*m=(const uint8_t*)xbox_GetMemoryOffset();const uint32_t*f=(const uint32_t*)(m+frame);
+ if(f[1]<0x10000u || f[1]>0x03ffff00u || f[4]<0x10000u || f[4]>0x03ffff00u)return;
+ uint32_t t=*(const uint32_t*)(m+f[1]+0x28);
+ if(t<0x10000u || t>0x03ffff00u)return;
+ const uint16_t*n=(const uint16_t*)(m+t);
+ if(n[0]!='R'||n[1]!='o'||n[2]!='t'||n[3]!='a')return;
+ ++count;fprintf(stderr,"[SC1-ROTATE-LET] stage=%u target=%08X code=%08X locals=%08X newYaw=%u\n",stage,target,f[3],f[4],*(const uint32_t*)(m+f[4]+0x1c));
 }

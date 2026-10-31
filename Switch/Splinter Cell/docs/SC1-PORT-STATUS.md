@@ -1,9 +1,40 @@
-# SC1 port status — 31 October 2026
+# SC1 port status — 1 November 2026
 
 **Original menu navigation and saving have been demonstrated on Switch.
 Training-scene rendering is demonstrated on Switch, with incorrect lighting and
 no verified player/camera progression. Playable training remains unverified.** The development NRO contains real lifted SC1 code and
 the upstream Xbox runtime/NVK renderer. It is not a replacement-game demo.
+
+## Hallway execution — 1 November 2026
+
+The hallway stall has a reproduced recompilation cause. The original VM
+float-greater function at `0x0002FF90` was split at `0x00030006`, between
+`TEST AH,0x41` and its conditional branch. The generated continuation lost the
+flags and returned true for `0 > 0`. In `RotateTowardsRotator`, that wrongly
+executes the zero-damping branch and replaces the calculated yaw with the old
+rotation. A title-local recovery now translates the complete original function
+through both original returns, retaining its ABI and all dispatch symbols.
+An executable test of the actual lifted function fails before the recovery and
+passes afterward, including equal, signed, NaN, infinity and signed-zero cases.
+
+Original host execution now turns Lambert to the requested yaw and reaches new
+movement/state paths. Original callbacks `0x000A4D40` and `0x00063150`
+(`Actor.AddSoundRequest`) have been recovered and executed. Original `EAIController.WalkToDestination` at `0x00116A10` also executes.
+The next host run records Lambert moving through multiple original level
+positions, from `(819.013,-2105.68,1625)` to `(784.108,-1323.87,1626.15)`.
+The latent movement callback `0x00124A20` also executes. Lambert reaches
+`(852.962,-1108.12,1626.15)`, and the original training script resumes and
+issues its next `Goal_Set`. The latest blocker is guest-worker callback
+`0x00188EC0`, now being recovered. The player/camera cinematic lock remains set. This is host execution
+progress, not verified interactive gameplay or a new console result.
+
+Buffy's bounded end-timestamp GPU waits and opaque presentation pass are adapted
+and compile in SC1's existing NVK renderer. The timestamp test rejects stale
+results and verifies bounded fallback. Their native visual effect is untested;
+no new NRO has been built for the host-only recovery cycle. The owner confirms
+v0.0.4 movies no longer buffer, while loading remains white and the hallway
+remains static. Original logo/intro Bink files are 640×480; remaining video
+pixelation has not been isolated.
 
 ## Console checkpoint — 29 October 2026
 
@@ -55,7 +86,7 @@ and matching ELF built successfully. The owner verified opening video is visible
 on console; loading artwork and hallway/progression remain incorrect. The
 reported 4.6–4.7 second stalls coincide with periodic GPU captures at frames
 120/240/360, which have now been disabled in the console environment file.
-Playback pacing after disabling captures remains to be tested.
+The owner subsequently confirmed the video buffering stopped.
 `SC1_CPU_SCANOUT=0` disables this change for comparison. The current
 CPU upload path supports the observed 32-bit, unscaled scanout.
 
@@ -69,7 +100,8 @@ Scales are pushed on each draw so clear/post passes cannot leave stale values.
 Shader-generation checks cover 1–8 stages and preserve the GL dialect; the
 Switch renderer and NRO compile successfully. Candidate
 `0.0.4-20261030-142826Z-27b1bbc0` was uploaded and fully readback-verified.
-Its console rendering result remains pending. Fence/timestamp and compositor
+The owner reports no remaining video buffering; loading is still white and
+the hallway remains static. Fence/timestamp and compositor
 alpha changes are not included. Original cinematic control release remains
 the next independent execution investigation; no input lock is bypassed.
 

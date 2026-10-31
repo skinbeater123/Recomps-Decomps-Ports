@@ -382,5 +382,25 @@
   {
     "start": "0x00185090",
     "evidence": "Original indirect callback reached on the guest worker stack during training scene startup after 0x0018B0F0 executed. Recover original body and calling convention unchanged."
+  },
+  {
+    "start": "0x000A4D40",
+    "evidence": "Original training execution after recovering float-greater shared flags tail reached this indirect callback; host-float-compare log 31 October 2026. Preserve original body and ABI."
+  },
+  {
+    "start": "0x00063150",
+    "evidence": "Original training execution advanced past 0x000A4D40 and reached this native callback from 0x00032F4B on 31 October 2026. Recover original body and ABI."
+  },
+  {
+    "start": "0x00116A10",
+    "evidence": "Original training AI state execution reached this native callback from 0x00032F4B after AddSoundRequest and movement callback recovery, 1 November 2026. Retain original body/ABI."
+  },
+  {
+    "start": "0x00124A20",
+    "evidence": "Original training AI moved Lambert through distinct positions after WalkToDestination recovery; next indirect callback reached via latent execution (0x000C81EC), 1 November 2026. Recover unchanged original body/ABI."
+  },
+  {
+    "start": "0x00188EC0",
+    "evidence": "Original training script advanced to its next Goal_Set after Lambert navigation. A guest worker reached this indirect callback (return stack 0x002425AB), 1 November 2026. Preserve original body/ABI."
   }
 ]

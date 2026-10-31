@@ -102,6 +102,8 @@ def prepare_d3d(staging):
 
 
 def publish_generation(staging):
+    from prepare_float_compare import prepare as prepare_float_compare
+    prepare_float_compare(staging)
     stubs = staging / "recomp_stubs_unresolved.c"
     text = stubs.read_text()
     text = re.sub(r'void (sub_([0-9A-Fa-f]+))\(void\) \{[^\n]*\}',
@@ -144,6 +146,8 @@ def main():
         raise SystemExit("Unrecognised XBE: this integration currently requires the pinned European retail executable")
     run_module("xbe_parser", xbe, "--json", PRIVATE / "sc1_analysis.json", "--quiet")
     if options.prepare_only:
+        from prepare_float_compare import prepare as prepare_float_compare
+        prepare_float_compare(PROJECT / "generated")
         return
     if not options.lift_only:
         subprocess.run([sys.executable, str(PROJECT / "scripts/recover_class_seeds.py")], check=True)

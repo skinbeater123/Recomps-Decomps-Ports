@@ -141,3 +141,63 @@ for path in (root / 'generated').glob('recomp_*.c'):
         '    sc1_trace_input_gate(esi, ebp, edi, eax);\n#endif'))
     path.write_bytes((text[:match.start()] + body + text[match.end():]).encode('utf-8'))
 if len(gate_files) != 1: raise RuntimeError(f'Expected one original boolean assignment handler, got {len(gate_files)}')
+
+pattern_files = []
+for path in (root / 'generated').glob('recomp_*.c'):
+    text = path.read_text(encoding='utf-8'); marker = 'loc_00033360: ;'
+    if marker not in text: continue
+    pattern_files.append(path)
+    hook = marker + ('\n#if defined(_WIN32)\n'
+        '    extern void sc1_trace_pattern_call(uint32_t,uint32_t);\n'
+        '    sc1_trace_pattern_call(ecx, MEM32(esp+4));\n#endif')
+    if hook not in text: path.write_bytes(text.replace(marker,hook,1).encode('utf-8'))
+if len(pattern_files) != 1: raise RuntimeError('Expected one original script execution entry')
+
+invoke_files = []
+for path in (root / 'generated').glob('recomp_*.c'):
+    text=path.read_text(encoding='utf-8'); marker='loc_00034F00: ;'
+    if marker not in text: continue
+    invoke_files.append(path)
+    hook=marker+ ('\n#if defined(_WIN32)\n'
+        '    extern void sc1_trace_pattern_invoke(uint32_t,uint32_t,uint32_t);\n'
+        '    sc1_trace_pattern_invoke(ecx,MEM32(esp+4),MEM32(esp+12));\n#endif')
+    if hook not in text:path.write_bytes(text.replace(marker,hook,1).encode('utf-8'))
+if len(invoke_files)!=1:raise RuntimeError('Expected one original function invocation entry')
+
+# Observe original AI goal dispatch and its first movement-goal branches.
+for label,stage,obj,goal in [('0012A1A0',0,'ecx','0'),('00126370',1,'ecx','MEM32(esp+4)'),('00126614',2,'edi','esi'),('0012672C',3,'edi','esi'),('0012675F',4,'edi','esi'),('0012491C',5,'esi','MEM32(esi+0x458)'),('00122E44',6,'ebp','ebx'),('00123993',7,'ebp','ebx'),('00122E4B',8,'ebp','ebx'),('00122FCB',9,'ebp','ebx'),('00123177',10,'ebp','ebx'),('001231FE',11,'ebp','ebx'),('00123270',12,'ebp','ebx'),('0012345B',13,'ebp','ebx'),('00123539',14,'ebp','ebx'),('00123551',15,'ebp','ebx'),('00123B09',16,'ebp','ebx'),('00123C35',17,'ebp','ebx'),('0012404C',18,'ebp','ebx'),('0012415C',19,'ebp','ebx'),('00124233',20,'ebp','ebx')]:
+    matches=[]
+    for path in (root/'generated').glob('recomp_*.c'):
+        text=path.read_text(encoding='utf-8');marker=f'loc_{label}: ;'
+        if marker not in text:continue
+        matches.append(path)
+        text=re.sub(re.escape(marker)+r'\n#if defined\(_WIN32\)\n    extern void sc1_trace_ai_goal\([^\n]*\n    sc1_trace_ai_goal\([^\n]*\n#endif',marker,text)
+        hook=marker+f'\n#if defined(_WIN32)\n    extern void sc1_trace_ai_goal(uint32_t,uint32_t,uint32_t,uint32_t);\n    sc1_trace_ai_goal({stage},{obj},{goal},eax);\n#endif'
+        if hook not in text:path.write_bytes(text.replace(marker,hook,1).encode('utf-8'))
+    if len(matches)!=1:raise RuntimeError(f'Expected one AI goal site {label}')
+
+for label,stage,pawn,params in [('00117B20',0,'ecx','esp+4'),('00117B75',1,'esi','esp+8'),('000C7907',2,'edi','esp+0x18'),('000C79C1',3,'edi','esp+0x18'),('00063810',4,'ecx','esp+4')]:
+    for path in (root/'generated').glob('recomp_*.c'):
+        text=path.read_text(encoding='utf-8');marker=f'loc_{label}: ;'
+        if marker not in text:continue
+        hook=marker+f'\n#if defined(_WIN32)\n    extern void sc1_trace_rotation(uint32_t,uint32_t,uint32_t,uint32_t);\n    sc1_trace_rotation({stage},{pawn},{params},eax);\n#endif'
+        if hook not in text:path.write_bytes(text.replace(marker,hook,1).encode('utf-8'))
+
+for path in (root/'generated').glob('recomp_*.c'):
+    text=path.read_text(encoding='utf-8');marker='loc_000638BF: ;'
+    if marker not in text:continue
+    hook=marker+'\n#if defined(_WIN32)\n    extern void sc1_trace_turn_result(uint32_t,uint32_t,uint32_t);\n    sc1_trace_turn_result(esp,eax,edx);\n#endif'
+    if hook not in text:path.write_bytes(text.replace(marker,hook,1).encode('utf-8'))
+
+for path in (root/'generated').glob('recomp_*.c'):
+    text=path.read_text(encoding='utf-8');marker='loc_00065B05: ;'
+    if marker not in text:continue
+    hook=marker+'\n#if defined(_WIN32)\n    extern void sc1_trace_turn_store(uint32_t,uint32_t,uint32_t);\n    sc1_trace_turn_store(esi,MEM32(esp+0x18),eax);\n#endif'
+    if hook not in text:path.write_bytes(text.replace(marker,hook,1).encode('utf-8'))
+
+for label,stage,frame,target in [('0002DE7E',0,'MEM32(esp+0x18)','MEM32(0x2DAC00)'),('0002DFA8',1,'MEM32(esp+0x18)','esi'),('000C7907',2,'esi','esp+0x18')]:
+    for path in (root/'generated').glob('recomp_*.c'):
+        text=path.read_text(encoding='utf-8');marker=f'loc_{label}: ;'
+        if marker not in text:continue
+        hook=marker+f'\n#if defined(_WIN32)\n    extern void sc1_trace_rotate_let(uint32_t,uint32_t,uint32_t);\n    sc1_trace_rotate_let({frame},{target},{stage});\n#endif'
+        if hook not in text:path.write_bytes(text.replace(marker,hook,1).encode('utf-8'))
